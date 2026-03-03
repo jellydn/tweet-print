@@ -12,7 +12,7 @@
       <h1>TweetPrint</h1>
       <p class="subtitle">Convert Twitter/X links to clean, printable PDFs</p>
     </div>
-    <div class="form-container">
+    <div class="form-container" id="form-container">
       <form id="url-form">
         <div class="input-group">
           <input
@@ -27,6 +27,17 @@
           Generate PDF
         </button>
       </form>
+    </div>
+    <div class="preview-container" id="preview-container" style="display: none;">
+      <div id="tweet-preview"></div>
+      <div class="preview-actions">
+        <button type="button" id="download-pdf-btn" class="btn btn-primary">
+          Download PDF
+        </button>
+        <button type="button" id="convert-another-btn" class="btn btn-secondary">
+          Convert Another
+        </button>
+      </div>
     </div>
   </div>
   <script src="/js/app.js"></script>
