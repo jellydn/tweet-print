@@ -1,0 +1,23 @@
+{
+	"name": "tweet-print",
+	"module": "src/index.ts",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"dev": "bun run --watch src/index.ts",
+		"typecheck": "tsc --noEmit",
+		"lint": "bunx biome check --write ."
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.5",
+		"@types/bun": "latest",
+		"@types/node": "^25.3.3"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"dependencies": {
+		"hono": "^4.12.4",
+		"puppeteer": "^24.37.5"
+	}
+}
