@@ -70,8 +70,8 @@
 				"Typecheck passes"
 			],
 			"priority": 4,
-			"passes": false,
-			"notes": "Try syndication.twitter.com/timeline/conversation/{id} for thread data. If unavailable, fall back to single tweet only."
+			"passes": true,
+			"notes": "Implemented with fallback to single tweet when thread endpoint returns 404/403. Tries syndication.twitter.com/timeline/conversation/{id} endpoint and falls back to single tweet API."
 		},
 		{
 			"id": "US-005",

@@ -40,7 +40,10 @@ async function fetchTweetData(tweetId: string): Promise<TweetData | null> {
 	}
 
 	const data = (await response.json()) as Record<string, unknown>;
+	return parseTweetData(data);
+}
 
+function parseTweetData(data: Record<string, unknown>): TweetData | null {
 	if (!data.text && !data.text_html) {
 		return null;
 	}
@@ -75,6 +78,59 @@ async function fetchTweetData(tweetId: string): Promise<TweetData | null> {
 	};
 }
 
+async function fetchTweetThread(tweetId: string): Promise<TweetData[]> {
+	const conversationUrl = `https://syndication.twitter.com/timeline/conversation/${tweetId}`;
+	const response = await fetch(conversationUrl);
+
+	if (response.status === 404 || response.status === 403) {
+		const singleTweet = await fetchTweetData(tweetId);
+		return singleTweet ? [singleTweet] : [];
+	}
+
+	if (response.status === 429) {
+		throw new Error("RATE_LIMITED");
+	}
+
+	if (!response.ok) {
+		const singleTweet = await fetchTweetData(tweetId);
+		return singleTweet ? [singleTweet] : [];
+	}
+
+	const data = (await response.json()) as Record<string, unknown>;
+	const timeline = data.timeline as Record<string, unknown> | undefined;
+
+	if (!timeline) {
+		const singleTweet = await fetchTweetData(tweetId);
+		return singleTweet ? [singleTweet] : [];
+	}
+
+	const tweets: TweetData[] = [];
+	const items = timeline.items as Array<Record<string, unknown>> | undefined;
+
+	if (items) {
+		for (const item of items) {
+			const tweet = item.tweet as Record<string, unknown> | undefined;
+			if (tweet) {
+				const parsed = parseTweetData(tweet);
+				if (parsed) {
+					tweets.push(parsed);
+				}
+			}
+		}
+	}
+
+	if (tweets.length === 0) {
+		const singleTweet = await fetchTweetData(tweetId);
+		return singleTweet ? [singleTweet] : [];
+	}
+
+	tweets.sort(
+		(a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+	);
+
+	return tweets;
+}
+
 const app = new Hono();
 
 app.use("/static/*", serveStatic({ root: "./public" }));
@@ -98,11 +154,11 @@ app.post("/api/tweet", async (c) => {
 	}
 
 	try {
-		const tweetData = await fetchTweetData(tweetId);
-		if (!tweetData) {
+		const tweets = await fetchTweetThread(tweetId);
+		if (tweets.length === 0) {
 			return c.json({ error: "Tweet not found" }, 404);
 		}
-		return c.json(tweetData);
+		return c.json({ tweets });
 	} catch (error) {
 		const errorMessage =
 			error instanceof Error ? error.message : "Unknown error";
