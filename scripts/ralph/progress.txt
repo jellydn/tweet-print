@@ -18,3 +18,35 @@
   - Pre-commit hooks fix trailing whitespace and run biome checks
   - Use readFileSync to serve static HTML files in Hono
   - tsconfig.json cannot have JSON comments (use biome to format)
+
+## 2026-03-04 07:45 - US-002
+[Session: https://opncd.ai/s/8a9f2c]
+- Implemented URL input form with centered text input and placeholder
+- Added Generate PDF button below input
+- Implemented client-side validation for twitter.com/x.com status URLs
+- Added inline red error message for invalid URLs
+- Button disabled when input is empty
+- Clean minimal CSS design (no framework)
+- Typecheck and lint pass
+
+**Learnings for future iterations:**
+  - The URL regex pattern requires at least one character before /status/
+  - chrome-devtools-mcp not configured, so browser testing was skipped
+  - Pre-commit hooks run biome on all staged files
+
+## 2026-03-04 08:30 - US-003
+[Session: https://opncd.ai/s/8a9f2c]
+- Implemented POST /api/tweet endpoint in src/index.ts
+- Extracts tweet ID from Twitter/X URLs
+- Fetches tweet data from cdn.syndication.twimg.com/tweet-result
+- Returns JSON with: text, authorName, authorHandle, authorAvatarUrl, timestamp, imageUrls
+- Returns 400 for invalid URL format
+- Returns 404 when tweet not found
+- Returns 429 with retry message on rate limit
+- Updated frontend to call the API endpoint with fetch()
+- Typecheck and lint pass
+
+**Learnings for future iterations:**
+  - The syndication API returns 404 for non-existent tweets
+  - Use Record<string, unknown> with type casting for API response parsing
+  - Frontend error handling covers all HTTP status codes (400, 404, 429)

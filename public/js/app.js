@@ -21,7 +21,34 @@ function clearError() {
 	errorMessage.classList.remove("visible");
 }
 
-function validateAndSubmit() {
+async function fetchTweetData(url) {
+	const response = await fetch("/api/tweet", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({ url }),
+	});
+
+	if (!response.ok) {
+		const data = await response.json();
+		const error = data.error || "Failed to fetch tweet";
+		if (response.status === 400) {
+			showError(error);
+		} else if (response.status === 404) {
+			showError("Tweet not found. It may be deleted or protected.");
+		} else if (response.status === 429) {
+			showError("Rate limited. Please try again later.");
+		} else {
+			showError(error);
+		}
+		return null;
+	}
+
+	return response.json();
+}
+
+async function validateAndSubmit() {
 	const url = urlInput.value.trim();
 
 	if (!url) {
@@ -40,7 +67,14 @@ function validateAndSubmit() {
 	generateBtn.disabled = true;
 	generateBtn.innerHTML = '<span class="spinner"></span>Loading...';
 
-	console.log("URL submitted:", url);
+	const tweetData = await fetchTweetData(url);
+
+	generateBtn.disabled = false;
+	generateBtn.innerHTML = "Generate PDF";
+
+	if (tweetData) {
+		console.log("Tweet data:", tweetData);
+	}
 }
 
 urlInput.addEventListener("input", () => {
