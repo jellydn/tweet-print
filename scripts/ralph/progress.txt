@@ -1,0 +1,20 @@
+## Codebase Patterns
+- Use Bun as the runtime and package manager
+- Hono for the web framework with Bun adapter
+- Serve static files from public/ directory
+- TypeScript with strict mode enabled
+
+## 2026-03-04 07:00 - US-001
+[Session: https://opncd.ai/s/8a9f2c]
+- Initialized Bun project with TypeScript
+- Installed Hono and Puppeteer dependencies
+- Created src/index.ts with Hono server serving static files from public/
+- Created public/index.html with basic HTML page
+- Added dev script: bun run --watch src/index.ts
+- Verified server starts on port 3000
+- Typecheck passes
+
+**Learnings for future iterations:**
+  - Pre-commit hooks fix trailing whitespace and run biome checks
+  - Use readFileSync to serve static HTML files in Hono
+  - tsconfig.json cannot have JSON comments (use biome to format)
