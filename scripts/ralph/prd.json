@@ -91,8 +91,8 @@
 				"Verify in browser using dev-browser skill"
 			],
 			"priority": 5,
-			"passes": false,
-			"notes": ""
+			"passes": true,
+			"notes": "Implemented with preview-container, renderTweet/renderPreview functions, image rendering, timestamps, and action buttons."
 		},
 		{
 			"id": "US-006",
@@ -107,8 +107,8 @@
 				"Typecheck passes"
 			],
 			"priority": 6,
-			"passes": false,
-			"notes": "Download images and embed as base64 data URIs in the HTML template so Puppeteer can render them without network access."
+			"passes": true,
+			"notes": "Implemented with generatePdfHtml function, Puppeteer with headless mode, A4 format with proper margins."
 		},
 		{
 			"id": "US-007",
@@ -123,8 +123,8 @@
 				"Verify in browser using dev-browser skill"
 			],
 			"priority": 7,
-			"passes": false,
-			"notes": ""
+			"passes": true,
+			"notes": "Implemented with downloadPdfBtn click handler, blob handling, loading spinner, and proper filename format."
 		},
 		{
 			"id": "US-008",
@@ -139,8 +139,8 @@
 				"Verify in browser using dev-browser skill"
 			],
 			"priority": 8,
-			"passes": false,
-			"notes": ""
+			"passes": true,
+			"notes": "Implemented with showError/clearError functions, inline error message display, and input event listener to enable retry."
 		}
 	]
 }
