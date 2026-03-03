@@ -1,0 +1,146 @@
+{
+  "project": "TweetPrint",
+  "branchName": "ralph/tweet-to-pdf",
+  "description": "Twitter/X Link → PDF Converter — paste a tweet URL, preview it, download as a clean PDF",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Project Setup",
+      "description": "As a developer, I need the project scaffolded so I can start building features.",
+      "acceptanceCriteria": [
+        "Initialize Bun project with TypeScript (bun init)",
+        "Install Hono as the web framework",
+        "Install Puppeteer for PDF generation",
+        "Create src/index.ts with Hono server that serves static files from public/",
+        "Create public/index.html with a basic HTML page",
+        "Add dev script in package.json: bun run --watch src/index.ts",
+        "Server starts on port 3000 with bun run dev",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "URL Input & Validation UI",
+      "description": "As a user, I want to paste a Twitter/X URL so the app knows which tweet to convert.",
+      "acceptanceCriteria": [
+        "Landing page has a centered text input with placeholder 'Paste a Twitter/X link...'",
+        "Generate PDF button below the input",
+        "Client-side validation accepts URLs matching twitter.com/*/status/* and x.com/*/status/*",
+        "Shows inline red error text for invalid URLs when user submits",
+        "Button is disabled while input is empty",
+        "Clean minimal design with CSS (no framework)",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Fetch Single Tweet via Syndication API",
+      "description": "As a user, I want the app to fetch tweet content so I can see it before downloading.",
+      "acceptanceCriteria": [
+        "POST /api/tweet endpoint accepts JSON body with url field",
+        "Extract tweet ID from the URL",
+        "Fetch tweet data from syndication.twitter.com/tweet-result?id={id} (or equivalent syndication endpoint)",
+        "Return JSON with: text, authorName, authorHandle, authorAvatarUrl, timestamp, imageUrls array",
+        "Return 400 for invalid URL format",
+        "Return 404 when tweet not found",
+        "Return 429 with retry message on rate limit",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": "The syndication API is undocumented. Test with real tweet URLs to verify the response shape. Fallback: try https://cdn.syndication.twimg.com/tweet-result?id={id}"
+    },
+    {
+      "id": "US-004",
+      "title": "Fetch Full Thread via Syndication API",
+      "description": "As a user, I want the app to always fetch the full thread so I get complete context.",
+      "acceptanceCriteria": [
+        "When fetching a tweet, also attempt to fetch the thread via syndication conversation endpoint",
+        "Thread tweets are ordered chronologically (oldest first)",
+        "Each tweet in thread includes: text, authorName, authorHandle, timestamp, imageUrls",
+        "If tweet is not part of a thread, return single tweet in an array",
+        "Response shape: { tweets: TweetData[] } where first tweet is earliest in thread",
+        "Typecheck passes"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": "Try syndication.twitter.com/timeline/conversation/{id} for thread data. If unavailable, fall back to single tweet only."
+    },
+    {
+      "id": "US-005",
+      "title": "HTML Preview of Tweet",
+      "description": "As a user, I want to see a preview of the tweet before downloading so I can verify the content.",
+      "acceptanceCriteria": [
+        "After successful fetch, hide the input form and show a preview section",
+        "Preview displays: author avatar, name, handle for each tweet",
+        "Tweet body text with preserved line breaks and links",
+        "Embedded images displayed inline",
+        "Timestamp shown below each tweet",
+        "For threads: each tweet rendered as a separate card in chronological order",
+        "Download PDF button appears below the preview",
+        "Convert Another button resets the page to the input form",
+        "Clean minimal layout that matches what the PDF will look like",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "PDF Generation API",
+      "description": "As a developer, I need a backend endpoint that generates a PDF from tweet data.",
+      "acceptanceCriteria": [
+        "POST /api/pdf endpoint accepts tweet data JSON (same shape as /api/tweet response)",
+        "Builds a custom HTML template from the tweet data (no Twitter widget JS)",
+        "HTML template includes: author section, tweet body, images, footer with original URL and generation timestamp",
+        "Uses Puppeteer to render the HTML to PDF (A4 page, print-friendly)",
+        "Returns PDF as application/pdf stream",
+        "Typecheck passes"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": "Download images and embed as base64 data URIs in the HTML template so Puppeteer can render them without network access."
+    },
+    {
+      "id": "US-007",
+      "title": "PDF Download from Frontend",
+      "description": "As a user, I want to click Download PDF and get the file saved to my computer.",
+      "acceptanceCriteria": [
+        "Clicking Download PDF button sends tweet data to POST /api/pdf",
+        "Browser triggers file download with name format: handle-YYYY-MM-DD.pdf",
+        "Loading spinner shown on the button while PDF is generating",
+        "Button re-enables after download completes or errors",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Loading & Error States",
+      "description": "As a user, I want clear feedback during processing and when errors occur.",
+      "acceptanceCriteria": [
+        "Loading spinner shown while fetching tweet data after clicking Generate PDF",
+        "Error message displayed for: invalid URL, tweet not found (404), protected tweet, network error, rate limit (429)",
+        "Error message appears inline below the input field",
+        "User can edit the URL and retry after an error without refreshing",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
