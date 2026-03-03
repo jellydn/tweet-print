@@ -6,8 +6,6 @@
 - **Purpose:** Convert Twitter/X URLs to clean, printable PDFs
 - **Key APIs:** Twitter syndication API (`syndication.twitter.com`)
 
----
-
 ## Commands
 
 ### Development
@@ -39,7 +37,13 @@ bun test path/to/test-file.test.ts
 bun test --grep "test name"
 ```
 
----
+### Biome (Code Formatting & Linting)
+
+Biome is configured with:
+
+- **Indentation:** Tabs
+- **Quotes:** Double quotes
+- **Imports organization:** Auto-organizes on save (runs automatically with `bun run lint`)
 
 ## Code Style Guidelines
 
@@ -55,22 +59,22 @@ bun test --grep "test name"
 - Use `interface` for object shapes, `type` for unions/aliases
 - Avoid `any` - use `unknown` when type is truly unknown
 - Enable strict null checks
+- TypeScript strict mode is enabled with these key settings:
+  - `strict: true` - all strict checks enabled
+  - `noUncheckedIndexedAccess: true` - arrays/tuples include undefined
+  - `noImplicitOverride: true` - must use override keyword
+  - `verbatimModuleSyntax: true` - type imports required
 
 ### Imports
 
-- Use path aliases configured in `tsconfig.json` (e.g., `@/utils`)
-- Order imports: external libs → internal aliases → relative paths
+- Use path aliases from `tsconfig.json` (e.g., `@/utils`)
+- Order: external libs → internal aliases → relative paths
 - Prefer named exports over default exports
 
 ```typescript
-// Good
 import { Hono } from "hono";
-import { getTweet, getThread } from "@/lib/twitter";
+import { getTweet } from "@/lib/twitter";
 import type { Tweet } from "@/types";
-
-// Avoid
-import hono from "hono";
-import * as twitter from "@/lib/twitter";
 ```
 
 ### Naming Conventions
@@ -85,20 +89,15 @@ import * as twitter from "@/lib/twitter";
 ### Error Handling
 
 - Use custom error classes for domain-specific errors
-- Always return user-friendly error messages to API clients
-- Log errors with appropriate context for debugging
+- Return user-friendly error messages to API clients
 
 ```typescript
-// Good
 class TweetNotFoundError extends Error {
   constructor(tweetId: string) {
     super(`Tweet not found: ${tweetId}`);
     this.name = "TweetNotFoundError";
   }
 }
-
-// API error response
-return c.json({ error: "Tweet not found. It may be private or deleted." }, 404);
 ```
 
 ### API Routes (Hono)
@@ -106,17 +105,6 @@ return c.json({ error: "Tweet not found. It may be private or deleted." }, 404);
 - Use Hono's built-in validation with `zod` for request validation
 - Return consistent JSON response structure
 - Use proper HTTP status codes (200, 400, 404, 500)
-
-```typescript
-// Good
-app.post("/api/tweet", async (c) => {
-  const { url } = c.req.json();
-  if (!url || !isValidTwitterUrl(url)) {
-    return c.json({ error: "Invalid Twitter URL" }, 400);
-  }
-  // ...
-});
-```
 
 ### Frontend (Static HTML/CSS/JS)
 
@@ -143,23 +131,23 @@ app.post("/api/tweet", async (c) => {
 
 ```
 src/
-  index.ts          # Hono server entrypoint
-  routes/           # API route handlers
-  lib/              # Business logic (twitter, pdf)
-  types/            # TypeScript types
+  index.ts    # Hono server entrypoint
+  routes/     # API route handlers
+  lib/        # Business logic (twitter, pdf)
+  types/      # TypeScript types
 public/
-  index.html        # Main frontend page
-  css/              # Stylesheets
-  js/               # Client-side JavaScript
+  index.html  # Main frontend page
+  css/        # Stylesheets
+  js/         # Client-side JavaScript
 ```
 
 ---
 
 ## Key Patterns
 
-### URL Validation
-
-Accept: `twitter.com/*/status/*` and `x.com/*/status/*`
+- **URL Validation:** `twitter.com/*/status/*` and `x.com/*/status/*`
+- **Thread Fetching:** `syndication.twitter.com/timeline/conversation/{id}`
+- **File Naming:** `{handle}-YYYY-MM-DD.pdf`
 
 ```typescript
 function isValidTwitterUrl(url: string): boolean {
@@ -168,14 +156,6 @@ function isValidTwitterUrl(url: string): boolean {
   );
 }
 ```
-
-### Thread Fetching
-
-Use conversation endpoint: `syndication.twitter.com/timeline/conversation/{id}`
-
-### File Naming for Downloads
-
-Format: `{handle}-YYYY-MM-DD.pdf`
 
 ---
 

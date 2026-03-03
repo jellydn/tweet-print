@@ -4,46 +4,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TweetPrint - Convert Twitter/X to PDF</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      background: #f5f5f5;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .container {
-      max-width: 600px;
-      padding: 2rem;
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 0.5rem;
-      color: #1da1f2;
-    }
-
-    p {
-      text-align: center;
-      color: #666;
-      margin-bottom: 2rem;
-    }
-  </style>
+  <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
   <div class="container">
-    <h1>TweetPrint</h1>
-    <p>Convert Twitter/X links to clean, printable PDFs</p>
+    <div class="header">
+      <h1>TweetPrint</h1>
+      <p class="subtitle">Convert Twitter/X links to clean, printable PDFs</p>
+    </div>
+    <div class="form-container">
+      <form id="url-form">
+        <div class="input-group">
+          <input
+            type="text"
+            id="url-input"
+            placeholder="Paste a Twitter/X link..."
+            autocomplete="off"
+          >
+          <div id="error-message" class="error-message"></div>
+        </div>
+        <button type="button" id="generate-btn" class="btn btn-primary" disabled>
+          Generate PDF
+        </button>
+      </form>
+    </div>
   </div>
+  <script src="/js/app.js"></script>
 </body>
 </html>
