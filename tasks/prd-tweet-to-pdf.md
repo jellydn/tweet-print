@@ -69,12 +69,12 @@ A lightweight web tool that converts a public Twitter/X post URL into a clean, s
 
 **Acceptance Criteria:**
 
-- [ ] After fetching, display an HTML preview of the tweet/thread
-- [ ] Preview shows: author info, tweet body with preserved line breaks, embedded images
-- [ ] Preview has a clean, minimal layout matching the PDF output
-- [ ] "Download PDF" button appears below the preview
-- [ ] "Convert Another" button to reset and start over
-- [ ] Typecheck passes
+- [x] After fetching, display an HTML preview of the tweet/thread
+- [x] Preview shows: author info, tweet body with preserved line breaks, embedded images
+- [x] Preview has a clean, minimal layout matching the PDF output
+- [x] "Download PDF" button appears below the preview
+- [x] "Convert Another" button to reset and start over
+- [x] Typecheck passes
 - [ ] Verify in browser using dev-browser skill
 
 ### US-006: PDF Generation & Download
@@ -83,15 +83,15 @@ A lightweight web tool that converts a public Twitter/X post URL into a clean, s
 
 **Acceptance Criteria:**
 
-- [ ] `POST /api/pdf` accepts tweet data and returns a PDF file stream
-- [ ] PDF uses Puppeteer to render HTML → PDF
-- [ ] PDF layout includes:
+- [x] `POST /api/pdf` accepts tweet data and returns a PDF file stream
+- [x] PDF uses Puppeteer to render HTML → PDF
+- [x] PDF layout includes:
   - Author section (name, handle)
   - Tweet body with preserved line breaks
   - Embedded images
   - Footer with original URL + generation timestamp
-- [ ] File downloads with name format: `handle-YYYY-MM-DD.pdf`
-- [ ] Typecheck passes
+- [x] File downloads with name format: `handle-YYYY-MM-DD.pdf`
+- [x] Typecheck passes
 
 ### US-007: Loading & Error States
 
@@ -99,11 +99,11 @@ A lightweight web tool that converts a public Twitter/X post URL into a clean, s
 
 **Acceptance Criteria:**
 
-- [ ] Loading spinner/skeleton shown while fetching tweet data
-- [ ] Loading state shown while generating PDF
-- [ ] Error messages displayed for: invalid URL, tweet not found, protected tweet, network error
-- [ ] User can retry after an error
-- [ ] Typecheck passes
+- [x] Loading spinner/skeleton shown while fetching tweet data
+- [x] Loading state shown while generating PDF
+- [x] Error messages displayed for: invalid URL, tweet not found, protected tweet, network error
+- [x] User can retry after an error
+- [x] Typecheck passes
 - [ ] Verify in browser using dev-browser skill
 
 ## Functional Requirements

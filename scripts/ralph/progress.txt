@@ -64,3 +64,19 @@
   - Always fall back to single tweet fetch when thread endpoint fails
   - Extracted parseTweetData function to reuse parsing logic between single tweet and thread
   - API response format changed from single tweet to { tweets: [] } - frontend will need updating in US-005
+
+## 2026-03-04 10:00 - US-005/US-006
+[Session: https://opncd.ai/s/8a9f2c]
+- Implemented HTML Preview (US-005): Added preview-container to display tweet/thread
+- Preview shows author info, tweet body with line breaks, embedded images
+- Added "Download PDF" and "Convert Another" buttons
+- Implemented PDF Generation (US-006): Added POST /api/pdf endpoint using Puppeteer
+- PDF includes author section, tweet body, images, footer with source URL and timestamp
+- File downloads as handle-YYYY-MM-DD.pdf
+- Typecheck and lint pass
+
+**Learnings for future iterations:**
+  - Used Puppeteer with headless mode and --no-sandbox flag for Bun compatibility
+  - The generatePdfHtml function reuses HTML structure similar to frontend preview
+  - Frontend passes { tweets, url } to /api/pdf endpoint
+  - ChromeDevTools MCP not configured - browser testing skipped per instructions
