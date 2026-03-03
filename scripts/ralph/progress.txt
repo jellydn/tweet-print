@@ -80,3 +80,18 @@
   - The generatePdfHtml function reuses HTML structure similar to frontend preview
   - Frontend passes { tweets, url } to /api/pdf endpoint
   - ChromeDevTools MCP not configured - browser testing skipped per instructions
+
+## 2026-03-04 10:30 - US-005/US-006/US-007/US-008
+[Session: https://opncd.ai/s/8a9f2c]
+- Verified all remaining stories are implemented in the codebase
+- US-005 (HTML Preview): preview-container, renderTweet/renderPreview, images, timestamps
+- US-006 (PDF Generation): POST /api/pdf with Puppeteer, generatePdfHtml function
+- US-007 (PDF Download): downloadPdfBtn handler, blob handling, file naming
+- US-008 (Loading/Error States): showError/clearError, inline errors, retry capability
+- Updated PRD to mark US-005-US-008 as passes: true
+- Typecheck and lint pass
+
+**Learnings for future iterations:**
+  - All user stories from US-001 to US-008 are now complete
+  - chrome-devtools-mcp was not configured for browser verification
+  - No test script in package.json - verified via typecheck and lint only
