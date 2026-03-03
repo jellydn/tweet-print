@@ -20,11 +20,11 @@ A lightweight web tool that converts a public Twitter/X post URL into a clean, s
 
 **Acceptance Criteria:**
 
-- [ ] Bun + Hono server with TypeScript
-- [ ] Static HTML/CSS/JS frontend served from `public/`
-- [ ] Puppeteer installed for PDF generation
-- [ ] Project runs locally with `bun run dev`
-- [ ] Typecheck passes
+- [x] Bun + Hono server with TypeScript
+- [x] Static HTML/CSS/JS frontend served from `public/`
+- [x] Puppeteer installed for PDF generation
+- [x] Project runs locally with `bun run dev`
+- [x] Typecheck passes
 
 ### US-002: URL Input & Validation
 
@@ -32,11 +32,11 @@ A lightweight web tool that converts a public Twitter/X post URL into a clean, s
 
 **Acceptance Criteria:**
 
-- [ ] Landing page with a text input and "Generate PDF" button
-- [ ] Accepts URLs matching `twitter.com/*/status/*` and `x.com/*/status/*`
-- [ ] Shows inline error for invalid URLs
-- [ ] Button is disabled while input is empty or invalid
-- [ ] Typecheck passes
+- [x] Landing page with a text input and "Generate PDF" button
+- [x] Accepts URLs matching `twitter.com/*/status/*` and `x.com/*/status/*`
+- [x] Shows inline error for invalid URLs
+- [x] Button is disabled while input is empty or invalid
+- [x] Typecheck passes
 - [ ] Verify in browser using dev-browser skill
 
 ### US-003: Fetch Tweet Data via Syndication API
@@ -45,11 +45,11 @@ A lightweight web tool that converts a public Twitter/X post URL into a clean, s
 
 **Acceptance Criteria:**
 
-- [ ] `POST /api/tweet` accepts a valid Twitter/X URL
-- [ ] Calls Twitter syndication API (`syndication.twitter.com`) to fetch structured tweet data
-- [ ] Returns JSON with: text, author name, handle, avatar URL, timestamp, image URLs
-- [ ] Returns appropriate error (404, invalid URL, rate limit) with user-friendly message
-- [ ] Typecheck passes
+- [x] `POST /api/tweet` accepts a valid Twitter/X URL
+- [x] Calls Twitter syndication API (`syndication.twitter.com`) to fetch structured tweet data
+- [x] Returns JSON with: text, author name, handle, avatar URL, timestamp, image URLs
+- [x] Returns appropriate error (404, invalid URL, rate limit) with user-friendly message
+- [x] Typecheck passes
 
 ### US-004: Fetch Full Thread
 
@@ -57,11 +57,11 @@ A lightweight web tool that converts a public Twitter/X post URL into a clean, s
 
 **Acceptance Criteria:**
 
-- [ ] Use syndication conversation endpoint (`syndication.twitter.com/timeline/conversation/{id}`) to fetch thread
-- [ ] Thread tweets are ordered chronologically (oldest first)
-- [ ] Each tweet includes: text, author, timestamp, images
-- [ ] Single tweets (not part of a thread) work normally
-- [ ] Typecheck passes
+- [x] Use syndication conversation endpoint (`syndication.twitter.com/timeline/conversation/{id}`) to fetch thread
+- [x] Thread tweets are ordered chronologically (oldest first)
+- [x] Each tweet includes: text, author, timestamp, images
+- [x] Single tweets (not part of a thread) work normally
+- [x] Typecheck passes
 
 ### US-005: HTML Preview
 
