@@ -5,4 +5,6 @@ export interface TweetData {
 	authorAvatarUrl: string;
 	timestamp: string;
 	imageUrls: string[];
+	hasVideo: boolean;
+	videoThumbnailUrl: string | null;
 }

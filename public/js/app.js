@@ -1,5 +1,6 @@
 const URL_PATTERN =
 	/^(https?:\/\/)?(www\.)?(twitter\.com|x\.com)\/.+\/status\/\d+/;
+const SHORT_URL_PATTERN = /^(https?:\/\/)?t\.co\/\w+/;
 
 const _form = document.getElementById("url-form");
 const urlInput = document.getElementById("url-input");
@@ -15,7 +16,7 @@ let currentTweetData = null;
 let currentUrl = null;
 
 function isValidTwitterUrl(url) {
-	return URL_PATTERN.test(url);
+	return URL_PATTERN.test(url) || SHORT_URL_PATTERN.test(url);
 }
 
 function showError(message) {
@@ -59,6 +60,16 @@ function renderTweet(tweet) {
 				</div>`
 			: "";
 
+	const videoHtml =
+		tweet.hasVideo && tweet.videoThumbnailUrl
+			? `<div class="tweet-video">
+					<img src="${escapeHtml(tweet.videoThumbnailUrl)}" alt="Video thumbnail" class="tweet-image" loading="lazy">
+					<div class="video-label">▶ Video</div>
+				</div>`
+			: tweet.hasVideo
+				? `<div class="video-label">▶ Video (thumbnail unavailable)</div>`
+				: "";
+
 	return `
 		<div class="tweet">
 			<div class="tweet-header">
@@ -70,6 +81,7 @@ function renderTweet(tweet) {
 			</div>
 			<div class="tweet-body">${escapeHtml(tweet.text).replace(/\n/g, "<br>")}</div>
 			${imagesHtml}
+			${videoHtml}
 			<div class="tweet-timestamp">${formatDate(tweet.timestamp)}</div>
 		</div>
 	`;

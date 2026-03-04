@@ -20,10 +20,14 @@ export async function embedImages(tweets: TweetData[]): Promise<TweetData[]> {
 		const imageDataUris = await Promise.all(
 			tweet.imageUrls.map((url) => fetchImageAsBase64(url)),
 		);
+		const videoThumbDataUri = tweet.videoThumbnailUrl
+			? await fetchImageAsBase64(tweet.videoThumbnailUrl)
+			: null;
 		result.push({
 			...tweet,
 			authorAvatarUrl: avatarDataUri,
 			imageUrls: imageDataUris,
+			videoThumbnailUrl: videoThumbDataUri,
 		});
 	}
 	return result;
@@ -72,6 +76,16 @@ export function generatePdfHtml(tweets: TweetData[], url: string): string {
 					</div>`
 					: "";
 
+			const videoHtml =
+				tweet.hasVideo && tweet.videoThumbnailUrl
+					? `<div class="tweet-video">
+						<img src="${escapeHtml(tweet.videoThumbnailUrl)}" alt="Video thumbnail" class="tweet-image" loading="lazy">
+						<div class="video-label">▶ Video</div>
+					</div>`
+					: tweet.hasVideo
+						? `<div class="video-label">▶ Video (thumbnail unavailable)</div>`
+						: "";
+
 			return `
 			<div class="tweet">
 				<div class="tweet-header">
@@ -83,6 +97,7 @@ export function generatePdfHtml(tweets: TweetData[], url: string): string {
 				</div>
 				<div class="tweet-body">${escapeHtml(tweet.text).replace(/\n/g, "<br>")}</div>
 				${imagesHtml}
+				${videoHtml}
 				<div class="tweet-timestamp">${formatDate(tweet.timestamp)}</div>
 			</div>
 		`;
@@ -119,6 +134,8 @@ export function generatePdfHtml(tweets: TweetData[], url: string): string {
     .tweet-body { margin-bottom: 0.75rem; white-space: pre-wrap; word-wrap: break-word; font-size: 1rem; }
     .tweet-images { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.75rem; }
     .tweet-image { max-width: 100%; border-radius: 12px; border: 1px solid #e1e8ed; }
+    .tweet-video { position: relative; margin-bottom: 0.75rem; }
+    .video-label { display: inline-block; background: rgba(0,0,0,0.6); color: #fff; padding: 0.25rem 0.75rem; border-radius: 6px; font-size: 0.8rem; margin-top: 0.5rem; }
     .tweet-timestamp { color: #666; font-size: 0.875rem; }
     .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e1e8ed; color: #666; font-size: 0.75rem; text-align: center; }
   </style>

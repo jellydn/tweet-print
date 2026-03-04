@@ -6,6 +6,16 @@ export function isValidTwitterUrl(url: string): boolean {
 	);
 }
 
+export function isShortUrl(url: string): boolean {
+	return /^(https?:\/\/)?t\.co\/\w+/.test(url);
+}
+
+export async function resolveShortUrl(url: string): Promise<string> {
+	const fullUrl = url.startsWith("http") ? url : `https://${url}`;
+	const response = await fetch(fullUrl, { redirect: "follow" });
+	return response.url;
+}
+
 export function extractTweetId(url: string): string | null {
 	const match = url.match(/\/status\/(\d+)/);
 	return match?.[1] ?? null;
@@ -42,20 +52,41 @@ export function parseTweetData(
 	}
 
 	const imageUrls: string[] = [];
-	const entities = data.entities as Record<string, unknown> | undefined;
-	if (entities?.media) {
-		const media = entities.media as Array<Record<string, string>>;
-		for (const m of media) {
-			if (m.media_url_https) {
-				imageUrls.push(m.media_url_https);
+
+	const photos = data.photos as Array<Record<string, unknown>> | undefined;
+	if (photos) {
+		for (const photo of photos) {
+			const url = photo.url as string | undefined;
+			if (url) imageUrls.push(url);
+		}
+	}
+
+	if (imageUrls.length === 0) {
+		const entities = data.entities as Record<string, unknown> | undefined;
+		if (entities?.media) {
+			const media = entities.media as Array<Record<string, string>>;
+			for (const m of media) {
+				if (m.media_url_https) {
+					imageUrls.push(m.media_url_https);
+				}
 			}
 		}
 	}
+
+	const video = data.video as Record<string, unknown> | undefined;
+	const hasVideo = !!video;
+	const videoThumbnailUrl = (video?.poster as string) || null;
 
 	let text = (data.text as string) || "";
 	if (!text && data.text_html) {
 		text = (data.text_html as string).replace(/<[^>]*>/g, "").trim();
 	}
+	text = text
+		.replace(/&amp;/g, "&")
+		.replace(/&lt;/g, "<")
+		.replace(/&gt;/g, ">")
+		.replace(/&quot;/g, '"')
+		.replace(/&#39;/g, "'");
 
 	const user = data.user as Record<string, string> | undefined;
 	const authorName = user?.name || "Unknown";
@@ -72,6 +103,8 @@ export function parseTweetData(
 		authorAvatarUrl,
 		timestamp,
 		imageUrls,
+		hasVideo,
+		videoThumbnailUrl,
 	};
 }
 
