@@ -3,17 +3,37 @@ import { Hono } from "hono";
 import {
 	extractTweetId,
 	fetchTweetThread,
+	isShortUrl,
 	isValidTwitterUrl,
+	resolveShortUrl,
 } from "../lib/twitter.ts";
 
 const app = new Hono();
 
 app.post("/", async (c) => {
 	const body = await c.req.json<{ url: string }>();
-	const url = body.url;
+	let url = body.url;
 
-	if (!url || !isValidTwitterUrl(url)) {
+	if (!url) {
 		return c.json({ error: "Invalid URL format" }, 400);
+	}
+
+	if (isShortUrl(url)) {
+		try {
+			url = await resolveShortUrl(url);
+		} catch {
+			return c.json({ error: "Could not resolve short URL" }, 400);
+		}
+	}
+
+	if (!isValidTwitterUrl(url)) {
+		return c.json(
+			{
+				error:
+					"URL does not point to a tweet. Only tweet status URLs are supported.",
+			},
+			400,
+		);
 	}
 
 	const tweetId = extractTweetId(url);
