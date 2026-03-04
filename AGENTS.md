@@ -125,8 +125,6 @@ class TweetNotFoundError extends Error {
 - Run typecheck and lint before committing
 - Test locally before pushing
 
----
-
 ## Project Structure
 
 ```
@@ -141,8 +139,6 @@ public/
   js/         # Client-side JavaScript
 ```
 
----
-
 ## Key Patterns
 
 - **URL Validation:** `twitter.com/*/status/*` and `x.com/*/status/*`
@@ -156,8 +152,6 @@ function isValidTwitterUrl(url: string): boolean {
   );
 }
 ```
-
----
 
 ## Quality Requirements
 
