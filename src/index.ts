@@ -19,6 +19,6 @@ app.get("/", (c) => {
 app.use("/*", serveStatic({ root: "./public" }));
 
 export default {
-	port: 3000,
+	port: 8008,
 	fetch: app.fetch,
 };
