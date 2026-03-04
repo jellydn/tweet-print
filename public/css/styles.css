@@ -1,3 +1,15 @@
+:root {
+	--primary-color: #1da1f2;
+	--primary-color-hover: #1a91da;
+	--error-color: #e0245e;
+	--border-color: #e1e8ed;
+	--background-color: #f5f5f5;
+	--text-color: #333;
+	--text-color-secondary: #666;
+	--surface-color: white;
+	--btn-disabled-bg: #b9d3e2;
+}
+
 * {
 	margin: 0;
 	padding: 0;
@@ -8,8 +20,8 @@ body {
 	font-family:
 		-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 	line-height: 1.6;
-	color: #333;
-	background: #f5f5f5;
+	color: var(--text-color);
+	background: var(--background-color);
 	min-height: 100vh;
 	display: flex;
 	align-items: center;
@@ -29,15 +41,15 @@ body {
 
 h1 {
 	margin-bottom: 0.5rem;
-	color: #1da1f2;
+	color: var(--primary-color);
 }
 
 .subtitle {
-	color: #666;
+	color: var(--text-color-secondary);
 }
 
 .form-container {
-	background: white;
+	background: var(--surface-color);
 	border-radius: 12px;
 	padding: 2rem;
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -50,7 +62,7 @@ h1 {
 input[type="text"] {
 	width: 100%;
 	padding: 1rem;
-	border: 2px solid #e1e8ed;
+	border: 2px solid var(--border-color);
 	border-radius: 8px;
 	font-size: 1rem;
 	transition: border-color 0.2s;
@@ -58,15 +70,15 @@ input[type="text"] {
 
 input[type="text"]:focus {
 	outline: none;
-	border-color: #1da1f2;
+	border-color: var(--primary-color);
 }
 
 input[type="text"].error {
-	border-color: #e0245e;
+	border-color: var(--error-color);
 }
 
 .error-message {
-	color: #e0245e;
+	color: var(--error-color);
 	font-size: 0.875rem;
 	margin-top: 0.5rem;
 	display: none;
@@ -90,16 +102,16 @@ input[type="text"].error {
 }
 
 .btn-primary {
-	background: #1da1f2;
-	color: white;
+	background: var(--primary-color);
+	color: var(--surface-color);
 }
 
 .btn-primary:hover:not(:disabled) {
-	background: #1a91da;
+	background: var(--primary-color-hover);
 }
 
 .btn-primary:disabled {
-	background: #b9d3e2;
+	background: var(--btn-disabled-bg);
 	cursor: not-allowed;
 }
 
@@ -126,14 +138,14 @@ input[type="text"].error {
 }
 
 .preview-container {
-	background: white;
+	background: var(--surface-color);
 	border-radius: 12px;
 	padding: 2rem;
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .preview {
-	background: white;
+	background: var(--surface-color);
 	border-radius: 8px;
 	padding: 1rem;
 }
@@ -144,7 +156,7 @@ input[type="text"].error {
 	gap: 0.75rem;
 	margin-bottom: 1rem;
 	padding-bottom: 0.5rem;
-	border-bottom: 1px solid #e1e8ed;
+	border-bottom: 1px solid var(--border-color);
 }
 
 .preview-author-name {
@@ -153,23 +165,23 @@ input[type="text"].error {
 }
 
 .preview-author-handle {
-	color: #666;
+	color: var(--text-color-secondary);
 }
 
 .thread-header {
 	margin-bottom: 1rem;
 	padding-bottom: 0.5rem;
-	border-bottom: 1px solid #e1e8ed;
+	border-bottom: 1px solid var(--border-color);
 }
 
 .thread-count {
-	color: #666;
+	color: var(--text-color-secondary);
 	font-size: 0.875rem;
 }
 
 .tweet {
 	padding: 1rem 0;
-	border-bottom: 1px solid #e1e8ed;
+	border-bottom: 1px solid var(--border-color);
 }
 
 .tweet:first-child {
@@ -205,14 +217,14 @@ input[type="text"].error {
 }
 
 .tweet-author-handle {
-	color: #666;
+	color: var(--text-color-secondary);
 	font-size: 0.875rem;
 }
 
 .tweet-body {
 	margin-bottom: 0.75rem;
 	white-space: pre-wrap;
-	word-wrap: break-word;
+	overflow-wrap: break-word;
 }
 
 .tweet-images {
@@ -225,7 +237,7 @@ input[type="text"].error {
 .tweet-image {
 	max-width: 100%;
 	border-radius: 12px;
-	border: 1px solid #e1e8ed;
+	border: 1px solid var(--border-color);
 }
 
 .tweet-video {
@@ -244,7 +256,7 @@ input[type="text"].error {
 }
 
 .tweet-timestamp {
-	color: #666;
+	color: var(--text-color-secondary);
 	font-size: 0.875rem;
 }
 
@@ -256,7 +268,7 @@ input[type="text"].error {
 
 .btn-secondary {
 	background: #e1e8ed;
-	color: #333;
+	color: var(--text-color);
 }
 
 .btn-secondary:hover:not(:disabled) {
@@ -264,7 +276,7 @@ input[type="text"].error {
 }
 
 .link-card {
-	border: 1px solid #e1e8ed;
+	border: 1px solid var(--border-color);
 	border-radius: 12px;
 	overflow: hidden;
 	margin-bottom: 0.75rem;
@@ -291,7 +303,7 @@ input[type="text"].error {
 }
 
 .link-card-description {
-	color: #666;
+	color: var(--text-color-secondary);
 	font-size: 0.875rem;
 	display: -webkit-box;
 	-webkit-line-clamp: 2;
