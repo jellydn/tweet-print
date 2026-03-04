@@ -2,7 +2,6 @@ const URL_PATTERN =
 	/^(https?:\/\/)?(www\.)?(twitter\.com|x\.com)\/.+\/status\/\d+/;
 const SHORT_URL_PATTERN = /^(https?:\/\/)?t\.co\/\w+/;
 
-const _form = document.getElementById("url-form");
 const urlInput = document.getElementById("url-input");
 const generateBtn = document.getElementById("generate-btn");
 const errorMessage = document.getElementById("error-message");
@@ -196,17 +195,28 @@ function hidePreview() {
 }
 
 async function fetchTweetData(url) {
-	const response = await fetch("/api/tweet", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify({ url }),
-	});
+	let response;
+	try {
+		response = await fetch("/api/tweet", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ url }),
+		});
+	} catch {
+		showError("Network error. Please check your connection and try again.");
+		return null;
+	}
 
 	if (!response.ok) {
-		const data = await response.json();
-		const error = data.error || "Failed to fetch tweet";
+		let error = "Failed to fetch tweet";
+		try {
+			const data = await response.json();
+			error = data.error || error;
+		} catch {
+			// Response body is not JSON
+		}
 		if (response.status === 400) {
 			showError(error);
 		} else if (response.status === 404) {
@@ -261,7 +271,7 @@ urlInput.addEventListener("input", () => {
 	}
 });
 
-urlInput.addEventListener("keypress", (e) => {
+urlInput.addEventListener("keydown", (e) => {
 	if (e.key === "Enter") {
 		e.preventDefault();
 		validateAndSubmit();
@@ -289,14 +299,19 @@ downloadPdfBtn.addEventListener("click", async () => {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				tweets: currentTweetData.tweets,
 				url: currentUrl,
 			}),
 		});
 
 		if (!response.ok) {
-			const data = await response.json();
-			showError(data.error || "Failed to generate PDF");
+			let errorMsg = "Failed to generate PDF";
+			try {
+				const data = await response.json();
+				errorMsg = data.error || errorMsg;
+			} catch {
+				// Response body is not JSON
+			}
+			showError(errorMsg);
 			hidePreview();
 			return;
 		}
