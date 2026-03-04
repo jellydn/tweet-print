@@ -7,12 +7,13 @@ import tweetApp from "./routes/tweet.ts";
 
 const app = new Hono();
 
+const indexHtml = readFileSync("./public/index.html", "utf-8");
+
 app.route("/api/tweet", tweetApp);
 app.route("/api/pdf", pdfApp);
 
 app.get("/", (c) => {
-	const html = readFileSync("./public/index.html", "utf-8");
-	return c.html(html);
+	return c.html(indexHtml);
 });
 
 app.use("/*", serveStatic({ root: "./public" }));
