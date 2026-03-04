@@ -14,13 +14,13 @@
 # Install dependencies
 bun install
 
-# Run development server
+# Run development server (with hot reload)
 bun run dev
 
 # Typecheck (required before commit)
 bun run typecheck
 
-# Lint code
+# Lint and format code
 bun run lint
 ```
 
@@ -43,7 +43,7 @@ Biome is configured with:
 
 - **Indentation:** Tabs
 - **Quotes:** Double quotes
-- **Imports organization:** Auto-organizes on save (runs automatically with `bun run lint`)
+- **Imports organization:** Auto-organizes on save (runs with `bun run lint`)
 
 ## Code Style Guidelines
 
@@ -59,17 +59,18 @@ Biome is configured with:
 - Use `interface` for object shapes, `type` for unions/aliases
 - Avoid `any` - use `unknown` when type is truly unknown
 - Enable strict null checks
-- TypeScript strict mode is enabled with these key settings:
+- Key tsconfig settings:
   - `strict: true` - all strict checks enabled
   - `noUncheckedIndexedAccess: true` - arrays/tuples include undefined
   - `noImplicitOverride: true` - must use override keyword
   - `verbatimModuleSyntax: true` - type imports required
+  - Path alias: `@/` maps to `src/`
 
 ### Imports
 
-- Use path aliases from `tsconfig.json` (e.g., `@/utils`)
+- Use path aliases from `tsconfig.json` (e.g., `@/utils`, `@/lib/twitter`)
 - Order: external libs → internal aliases → relative paths
-- Prefer named exports over default exports
+- Use `import type` for types only
 
 ```typescript
 import { Hono } from "hono";
@@ -119,12 +120,6 @@ class TweetNotFoundError extends Error {
 - Download images locally before rendering
 - Include footer with source URL and timestamp
 
-### Git Conventions
-
-- Commit message format: `feat: [Story ID] - [Description]`
-- Run typecheck and lint before committing
-- Test locally before pushing
-
 ## Project Structure
 
 ```
@@ -152,6 +147,12 @@ function isValidTwitterUrl(url: string): boolean {
   );
 }
 ```
+
+## Git Conventions
+
+- Commit message format: `feat: [Story ID] - [Description]`
+- Run typecheck and lint before committing
+- Test locally before pushing
 
 ## Quality Requirements
 
