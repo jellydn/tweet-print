@@ -24,4 +24,4 @@ name = "typecheck"
 entry = "bun run typecheck"
 language = "system"
 pass_filenames = false
-types = ["ts"]
+types_or = ["ts", "tsx"]
