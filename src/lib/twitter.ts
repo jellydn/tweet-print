@@ -13,6 +13,9 @@ export function isShortUrl(url: string): boolean {
 export async function resolveShortUrl(url: string): Promise<string> {
 	const fullUrl = url.startsWith("http") ? url : `https://${url}`;
 	const response = await fetch(fullUrl, { redirect: "follow" });
+	if (!response.ok) {
+		throw new Error(`Failed to resolve short URL: ${response.status}`);
+	}
 	return response.url;
 }
 
@@ -73,9 +76,8 @@ export function parseTweetData(
 
 	const imageUrls: string[] = [];
 
-	const photos = data.photos as Array<Record<string, unknown>> | undefined;
-	if (photos) {
-		for (const photo of photos) {
+	if (Array.isArray(data.photos)) {
+		for (const photo of data.photos as Array<Record<string, unknown>>) {
 			const url = photo.url as string | undefined;
 			if (url) imageUrls.push(url);
 		}
@@ -83,9 +85,8 @@ export function parseTweetData(
 
 	if (imageUrls.length === 0) {
 		const entities = data.entities as Record<string, unknown> | undefined;
-		if (entities?.media) {
-			const media = entities.media as Array<Record<string, string>>;
-			for (const m of media) {
+		if (entities && Array.isArray(entities.media)) {
+			for (const m of entities.media as Array<Record<string, string>>) {
 				if (m.media_url_https) {
 					imageUrls.push(m.media_url_https);
 				}
@@ -98,8 +99,8 @@ export function parseTweetData(
 	const videoThumbnailUrl = (video?.poster as string) || null;
 
 	let text = (data.text as string) || "";
-	if (!text && data.text_html) {
-		text = (data.text_html as string).replace(/<[^>]*>/g, "").trim();
+	if (!text && typeof data.text_html === "string") {
+		text = data.text_html.replace(/<[^>]*>/g, "").trim();
 	}
 	text = text
 		.replace(/&amp;/g, "&")
