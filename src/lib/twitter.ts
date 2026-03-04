@@ -1,4 +1,4 @@
-import type { TweetData } from "../types/index.ts";
+import type { LinkCard, TweetData } from "../types/index.ts";
 
 export function isValidTwitterUrl(url: string): boolean {
 	return /^(https?:\/\/)?(www\.)?(twitter\.com|x\.com)\/.+\/status\/\d+/.test(
@@ -96,6 +96,34 @@ export function parseTweetData(
 		"https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png";
 	const timestamp = (data.created_at as string) || new Date().toISOString();
 
+	let linkCard: LinkCard | null = null;
+	const card = data.card as Record<string, unknown> | undefined;
+	if (card) {
+		const bindings = card.binding_values as
+			| Record<string, Record<string, unknown>>
+			| undefined;
+		if (bindings) {
+			const title = (bindings.title?.string_value as string) || "";
+			const description = (bindings.description?.string_value as string) || "";
+			const domain = (bindings.domain?.string_value as string) || "";
+			const cardUrl = (bindings.card_url?.string_value as string) || "";
+			const imgVal = bindings.summary_photo_image_large?.image_value as
+				| Record<string, unknown>
+				| undefined;
+			const imageUrl = (imgVal?.url as string) || "";
+			if (title) {
+				linkCard = { title, description, imageUrl, url: cardUrl, domain };
+			}
+		}
+	}
+
+	const isReply = !!data.in_reply_to_status_id_str;
+	let parentTweet: TweetData | null = null;
+	const parent = data.parent as Record<string, unknown> | undefined;
+	if (parent) {
+		parentTweet = parseTweetData(parent);
+	}
+
 	return {
 		text,
 		authorName,
@@ -105,6 +133,9 @@ export function parseTweetData(
 		imageUrls,
 		hasVideo,
 		videoThumbnailUrl,
+		linkCard,
+		isReply,
+		parentTweet,
 	};
 }
 

@@ -1,3 +1,11 @@
+export interface LinkCard {
+	title: string;
+	description: string;
+	imageUrl: string;
+	url: string;
+	domain: string;
+}
+
 export interface TweetData {
 	text: string;
 	authorName: string;
@@ -7,4 +15,7 @@ export interface TweetData {
 	imageUrls: string[];
 	hasVideo: boolean;
 	videoThumbnailUrl: string | null;
+	linkCard: LinkCard | null;
+	isReply: boolean;
+	parentTweet: TweetData | null;
 }

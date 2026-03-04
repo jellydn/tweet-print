@@ -139,6 +139,9 @@ input[type="text"].error {
 }
 
 .preview-author {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
 	margin-bottom: 1rem;
 	padding-bottom: 0.5rem;
 	border-bottom: 1px solid #e1e8ed;
@@ -258,4 +261,73 @@ input[type="text"].error {
 
 .btn-secondary:hover:not(:disabled) {
 	background: #cfd6db;
+}
+
+.link-card {
+	border: 1px solid #e1e8ed;
+	border-radius: 12px;
+	overflow: hidden;
+	margin-bottom: 0.75rem;
+	cursor: pointer;
+}
+
+.link-card-image {
+	width: 100%;
+	display: block;
+}
+
+.link-card-content {
+	padding: 0.75rem;
+}
+
+.link-card-title {
+	font-weight: 700;
+	font-size: 0.9375rem;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	margin-bottom: 0.25rem;
+}
+
+.link-card-description {
+	color: #666;
+	font-size: 0.875rem;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	margin-bottom: 0.25rem;
+}
+
+.link-card-domain {
+	color: #999;
+	font-size: 0.8125rem;
+}
+
+.parent-tweet {
+	border-left: 3px solid #ccd6dd;
+	padding-left: 1rem;
+	margin-bottom: 1rem;
+	font-size: 0.9375rem;
+	color: #555;
+}
+
+.parent-tweet .tweet-header {
+	margin-bottom: 0.5rem;
+}
+
+.parent-tweet .tweet-avatar {
+	width: 36px;
+	height: 36px;
+}
+
+.parent-tweet .tweet-timestamp {
+	font-size: 0.8125rem;
+}
+
+.reply-label {
+	color: #999;
+	font-size: 0.8125rem;
+	margin-bottom: 0.5rem;
 }

@@ -47,7 +47,7 @@ function escapeHtml(text) {
 	return div.innerHTML;
 }
 
-function renderTweet(tweet) {
+function renderTweet(tweet, showHeader = true) {
 	const imagesHtml =
 		tweet.imageUrls && tweet.imageUrls.length > 0
 			? `<div class="tweet-images">
@@ -70,19 +70,51 @@ function renderTweet(tweet) {
 				? `<div class="video-label">▶ Video (thumbnail unavailable)</div>`
 				: "";
 
-	return `
-		<div class="tweet">
-			<div class="tweet-header">
+	const linkCardHtml = tweet.linkCard
+		? `<div class="link-card">
+				${tweet.linkCard.imageUrl ? `<img src="${escapeHtml(tweet.linkCard.imageUrl)}" alt="" class="link-card-image" loading="lazy">` : ""}
+				<div class="link-card-content">
+					<div class="link-card-title">${escapeHtml(tweet.linkCard.title)}</div>
+					<div class="link-card-description">${escapeHtml(tweet.linkCard.description)}</div>
+					<div class="link-card-domain">${escapeHtml(tweet.linkCard.domain)}</div>
+				</div>
+			</div>`
+		: "";
+
+	const headerHtml = showHeader
+		? `<div class="tweet-header">
 				<img src="${escapeHtml(tweet.authorAvatarUrl)}" alt="${escapeHtml(tweet.authorName)}" class="tweet-avatar">
 				<div class="tweet-author-info">
 					<span class="tweet-author-name">${escapeHtml(tweet.authorName)}</span>
 					<span class="tweet-author-handle">@${escapeHtml(tweet.authorHandle)}</span>
 				</div>
-			</div>
+			</div>`
+		: "";
+
+	return `
+		<div class="tweet">
+			${headerHtml}
 			<div class="tweet-body">${escapeHtml(tweet.text).replace(/\n/g, "<br>")}</div>
 			${imagesHtml}
 			${videoHtml}
+			${linkCardHtml}
 			<div class="tweet-timestamp">${formatDate(tweet.timestamp)}</div>
+		</div>
+	`;
+}
+
+function renderParentTweet(parent) {
+	return `
+		<div class="parent-tweet">
+			<div class="tweet-header">
+				<img src="${escapeHtml(parent.authorAvatarUrl)}" alt="${escapeHtml(parent.authorName)}" class="tweet-avatar">
+				<div class="tweet-author-info">
+					<span class="tweet-author-name">${escapeHtml(parent.authorName)}</span>
+					<span class="tweet-author-handle">@${escapeHtml(parent.authorHandle)}</span>
+				</div>
+			</div>
+			<div class="tweet-body">${escapeHtml(parent.text).replace(/\n/g, "<br>")}</div>
+			<div class="tweet-timestamp">${formatDate(parent.timestamp)}</div>
 		</div>
 	`;
 }
@@ -91,10 +123,17 @@ function renderPreview(data) {
 	const tweets = data.tweets || [data];
 	const authorHandle = tweets[0].authorHandle;
 	const authorName = tweets[0].authorName;
+	const firstTweet = tweets[0];
 
+	const parentHtml = firstTweet.parentTweet
+		? `<div class="reply-label">Replying to @${escapeHtml(firstTweet.parentTweet.authorHandle)}</div>
+				${renderParentTweet(firstTweet.parentTweet)}`
+		: "";
+
+	const isSingle = tweets.length === 1;
 	let html = "";
-	if (tweets.length === 1) {
-		html = renderTweet(tweets[0]);
+	if (isSingle) {
+		html = renderTweet(tweets[0], false);
 	} else {
 		html = `
 			<div class="thread-header">
@@ -104,12 +143,20 @@ function renderPreview(data) {
 		`;
 	}
 
+	const avatarHtml = isSingle
+		? `<img src="${escapeHtml(tweets[0].authorAvatarUrl)}" alt="${escapeHtml(authorName)}" class="tweet-avatar">`
+		: "";
+
 	return `
 		<div class="preview">
 			<div class="preview-author">
-				<span class="preview-author-name">${escapeHtml(authorName)}</span>
-				<span class="preview-author-handle">@${escapeHtml(authorHandle)}</span>
+				${avatarHtml}
+				<div>
+					<span class="preview-author-name">${escapeHtml(authorName)}</span>
+					<span class="preview-author-handle">@${escapeHtml(authorHandle)}</span>
+				</div>
 			</div>
+			${parentHtml}
 			${html}
 		</div>
 	`;
