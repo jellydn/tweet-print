@@ -326,6 +326,33 @@ input[type="text"].error {
 	font-size: 0.8125rem;
 }
 
+.quoted-tweet {
+	border: 1px solid #ccd6dd;
+	border-radius: 12px;
+	padding: 0.75rem;
+	margin-bottom: 0.75rem;
+	font-size: 0.9375rem;
+}
+
+.quoted-tweet .tweet-avatar {
+	width: 20px;
+	height: 20px;
+}
+
+.quoted-tweet .tweet-author-info {
+	flex-direction: row;
+	gap: 0.25rem;
+	align-items: center;
+}
+
+.quoted-tweet .tweet-header {
+	margin-bottom: 0.5rem;
+}
+
+.quoted-tweet .tweet-timestamp {
+	font-size: 0.8125rem;
+}
+
 .reply-label {
 	color: #999;
 	font-size: 0.8125rem;

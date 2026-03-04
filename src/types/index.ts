@@ -18,4 +18,5 @@ export interface TweetData {
 	linkCard: LinkCard | null;
 	isReply: boolean;
 	parentTweet: TweetData | null;
+	quotedTweet: TweetData | null;
 }

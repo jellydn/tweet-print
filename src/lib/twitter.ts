@@ -44,6 +44,26 @@ export async function fetchTweetData(
 	return parseTweetData(data);
 }
 
+interface RawTweetInfo {
+	tweetId: string;
+	authorHandle: string;
+	inReplyToStatusId: string | null;
+	data: Record<string, unknown>;
+}
+
+function extractRawTweetInfo(
+	data: Record<string, unknown>,
+): RawTweetInfo | null {
+	if (!data.text && !data.text_html) {
+		return null;
+	}
+	const user = data.user as Record<string, string> | undefined;
+	const authorHandle = user?.screen_name || "unknown";
+	const tweetId = (data.id_str as string) || "";
+	const inReplyToStatusId = (data.in_reply_to_status_id_str as string) || null;
+	return { tweetId, authorHandle, inReplyToStatusId, data };
+}
+
 export function parseTweetData(
 	data: Record<string, unknown>,
 ): TweetData | null {
@@ -124,6 +144,12 @@ export function parseTweetData(
 		parentTweet = parseTweetData(parent);
 	}
 
+	let quotedTweet: TweetData | null = null;
+	const quoted = data.quoted_tweet as Record<string, unknown> | undefined;
+	if (quoted) {
+		quotedTweet = parseTweetData(quoted);
+	}
+
 	return {
 		text,
 		authorName,
@@ -136,7 +162,102 @@ export function parseTweetData(
 		linkCard,
 		isReply,
 		parentTweet,
+		quotedTweet,
 	};
+}
+
+function unflattenSelfReplyChain(tweet: TweetData): TweetData[] {
+	const chain: TweetData[] = [];
+	let current: TweetData | null = tweet;
+	const authorHandle = tweet.authorHandle;
+
+	while (current) {
+		chain.push({ ...current, parentTweet: null, isReply: false });
+		if (
+			current.parentTweet &&
+			current.parentTweet.authorHandle === authorHandle
+		) {
+			current = current.parentTweet;
+		} else {
+			break;
+		}
+	}
+
+	chain.reverse();
+	return chain;
+}
+
+function filterSelfReplyThread(
+	rawTweets: RawTweetInfo[],
+	targetTweetId: string,
+): RawTweetInfo[] {
+	const tweetMap = new Map<string, RawTweetInfo>();
+	for (const t of rawTweets) {
+		if (t.tweetId) {
+			tweetMap.set(t.tweetId, t);
+		}
+	}
+
+	const target = tweetMap.get(targetTweetId);
+	if (!target) {
+		return rawTweets;
+	}
+
+	const authorHandle = target.authorHandle;
+
+	// Walk up the reply chain to find the thread root by the same author
+	let rootId = targetTweetId;
+	const visited = new Set<string>();
+	while (true) {
+		const current = tweetMap.get(rootId);
+		if (!current?.inReplyToStatusId) break;
+		const parentId = current.inReplyToStatusId;
+		if (visited.has(parentId)) break;
+		visited.add(parentId);
+		const parent = tweetMap.get(parentId);
+		if (!parent || parent.authorHandle !== authorHandle) break;
+		rootId = parentId;
+	}
+
+	// Walk down from root, collecting consecutive self-replies by the same author
+	const threadTweets: RawTweetInfo[] = [];
+	const replyIndex = new Map<string, RawTweetInfo[]>();
+	for (const t of rawTweets) {
+		if (t.inReplyToStatusId && t.authorHandle === authorHandle) {
+			const replies = replyIndex.get(t.inReplyToStatusId) ?? [];
+			replies.push(t);
+			replyIndex.set(t.inReplyToStatusId, replies);
+		}
+	}
+
+	const root = tweetMap.get(rootId);
+	if (root) {
+		threadTweets.push(root);
+		let currentId = rootId;
+		while (true) {
+			const replies = replyIndex.get(currentId);
+			if (!replies || replies.length === 0) break;
+			const next = replies[0];
+			if (!next) break;
+			threadTweets.push(next);
+			currentId = next.tweetId;
+		}
+	}
+
+	return threadTweets.length > 1 ? threadTweets : rawTweets;
+}
+
+async function fetchTweetAsThread(tweetId: string): Promise<TweetData[]> {
+	const tweet = await fetchTweetData(tweetId);
+	if (!tweet) return [];
+	if (
+		tweet.parentTweet &&
+		tweet.parentTweet.authorHandle === tweet.authorHandle
+	) {
+		const chain = unflattenSelfReplyChain(tweet);
+		if (chain.length > 1) return chain;
+	}
+	return [tweet];
 }
 
 export async function fetchTweetThread(tweetId: string): Promise<TweetData[]> {
@@ -144,8 +265,7 @@ export async function fetchTweetThread(tweetId: string): Promise<TweetData[]> {
 	const response = await fetch(conversationUrl);
 
 	if (response.status === 404 || response.status === 403) {
-		const singleTweet = await fetchTweetData(tweetId);
-		return singleTweet ? [singleTweet] : [];
+		return fetchTweetAsThread(tweetId);
 	}
 
 	if (response.status === 429) {
@@ -153,48 +273,70 @@ export async function fetchTweetThread(tweetId: string): Promise<TweetData[]> {
 	}
 
 	if (!response.ok) {
-		const singleTweet = await fetchTweetData(tweetId);
-		return singleTweet ? [singleTweet] : [];
+		return fetchTweetAsThread(tweetId);
 	}
 
 	let data: Record<string, unknown>;
 	try {
 		const text = await response.text();
 		if (!text) {
-			const singleTweet = await fetchTweetData(tweetId);
-			return singleTweet ? [singleTweet] : [];
+			return fetchTweetAsThread(tweetId);
 		}
 		data = JSON.parse(text) as Record<string, unknown>;
 	} catch {
-		const singleTweet = await fetchTweetData(tweetId);
-		return singleTweet ? [singleTweet] : [];
+		return fetchTweetAsThread(tweetId);
 	}
 
 	const timeline = data.timeline as Record<string, unknown> | undefined;
 
 	if (!timeline) {
-		const singleTweet = await fetchTweetData(tweetId);
-		return singleTweet ? [singleTweet] : [];
+		return fetchTweetAsThread(tweetId);
 	}
 
-	const tweets: TweetData[] = [];
+	const rawTweets: RawTweetInfo[] = [];
 	const items = timeline.items as Array<Record<string, unknown>> | undefined;
 
 	if (items) {
 		for (const item of items) {
 			const tweet = item.tweet as Record<string, unknown> | undefined;
 			if (tweet) {
-				const parsed = parseTweetData(tweet);
-				if (parsed) {
-					tweets.push(parsed);
+				const info = extractRawTweetInfo(tweet);
+				if (info) {
+					rawTweets.push(info);
 				}
 			}
 		}
 	}
 
+	if (rawTweets.length === 0) {
+		return fetchTweetAsThread(tweetId);
+	}
+
+	// Filter to only the self-reply thread by the same author
+	const filtered = filterSelfReplyThread(rawTweets, tweetId);
+
+	const tweets: TweetData[] = [];
+	for (const raw of filtered) {
+		const parsed = parseTweetData(raw.data);
+		if (parsed) {
+			tweets.push(parsed);
+		}
+	}
+
 	if (tweets.length === 0) {
-		const singleTweet = await fetchTweetData(tweetId);
-		return singleTweet ? [singleTweet] : [];
+		return fetchTweetAsThread(tweetId);
+	}
+
+	// If we still have a single tweet with self-reply parents, unflatten the chain
+	if (
+		tweets.length === 1 &&
+		tweets[0]?.parentTweet &&
+		tweets[0].parentTweet.authorHandle === tweets[0].authorHandle
+	) {
+		const chain = unflattenSelfReplyChain(tweets[0]);
+		if (chain.length > 1) {
+			return chain;
+		}
 	}
 
 	tweets.sort(

@@ -81,6 +81,22 @@ function renderTweet(tweet, showHeader = true) {
 			</div>`
 		: "";
 
+	const quotedTweetHtml = tweet.quotedTweet
+		? `<div class="quoted-tweet">
+				<div class="tweet-header">
+					<img src="${escapeHtml(tweet.quotedTweet.authorAvatarUrl)}" alt="${escapeHtml(tweet.quotedTweet.authorName)}" class="tweet-avatar">
+					<div class="tweet-author-info">
+						<span class="tweet-author-name">${escapeHtml(tweet.quotedTweet.authorName)}</span>
+						<span class="tweet-author-handle">@${escapeHtml(tweet.quotedTweet.authorHandle)}</span>
+					</div>
+				</div>
+				<div class="tweet-body">${escapeHtml(tweet.quotedTweet.text).replace(/\n/g, "<br>")}</div>
+				${tweet.quotedTweet.imageUrls && tweet.quotedTweet.imageUrls.length > 0 ? `<div class="tweet-images">${tweet.quotedTweet.imageUrls.map((img) => `<img src="${escapeHtml(img)}" alt="Tweet image" class="tweet-image" loading="lazy">`).join("")}</div>` : ""}
+				${tweet.quotedTweet.hasVideo && tweet.quotedTweet.videoThumbnailUrl ? `<div class="tweet-video"><img src="${escapeHtml(tweet.quotedTweet.videoThumbnailUrl)}" alt="Video thumbnail" class="tweet-image" loading="lazy"><div class="video-label">▶ Video</div></div>` : ""}
+				<div class="tweet-timestamp">${formatDate(tweet.quotedTweet.timestamp)}</div>
+			</div>`
+		: "";
+
 	const headerHtml = showHeader
 		? `<div class="tweet-header">
 				<img src="${escapeHtml(tweet.authorAvatarUrl)}" alt="${escapeHtml(tweet.authorName)}" class="tweet-avatar">
@@ -98,6 +114,7 @@ function renderTweet(tweet, showHeader = true) {
 			${imagesHtml}
 			${videoHtml}
 			${linkCardHtml}
+			${quotedTweetHtml}
 			<div class="tweet-timestamp">${formatDate(tweet.timestamp)}</div>
 		</div>
 	`;
