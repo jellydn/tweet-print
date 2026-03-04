@@ -1,15 +1,42 @@
 import type { TweetData } from "../types/index.ts";
 
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_MEDIA_HOSTS = new Set([
+	"pbs.twimg.com",
+	"video.twimg.com",
+	"abs.twimg.com",
+	"ton.twimg.com",
+]);
+
+function isAllowedMediaUrl(raw: string): URL | null {
+	try {
+		const parsed = new URL(raw);
+		if (parsed.protocol !== "https:") return null;
+		if (!ALLOWED_MEDIA_HOSTS.has(parsed.hostname)) return null;
+		return parsed;
+	} catch {
+		return null;
+	}
+}
+
 async function fetchImageAsBase64(url: string): Promise<string> {
 	try {
-		const response = await fetch(url);
-		if (!response.ok) return url;
+		const safeUrl = isAllowedMediaUrl(url);
+		if (!safeUrl) return "";
+		const response = await fetch(safeUrl, {
+			signal: AbortSignal.timeout(5000),
+		});
+		if (!response.ok) return "";
+		const contentType = response.headers.get("content-type") || "";
+		if (!contentType.startsWith("image/")) return "";
+		const contentLength = Number(response.headers.get("content-length") ?? "0");
+		if (contentLength > MAX_IMAGE_BYTES) return "";
 		const buffer = await response.arrayBuffer();
+		if (buffer.byteLength > MAX_IMAGE_BYTES) return "";
 		const base64 = Buffer.from(buffer).toString("base64");
-		const contentType = response.headers.get("content-type") || "image/jpeg";
 		return `data:${contentType};base64,${base64}`;
 	} catch {
-		return url;
+		return "";
 	}
 }
 
