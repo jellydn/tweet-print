@@ -7,6 +7,7 @@ export interface LinkCard {
 }
 
 export interface TweetData {
+	id: string;
 	text: string;
 	authorName: string;
 	authorHandle: string;
