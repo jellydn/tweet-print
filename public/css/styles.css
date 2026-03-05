@@ -370,3 +370,45 @@ input[type="text"].error {
 	font-size: 0.8125rem;
 	margin-bottom: 0.5rem;
 }
+
+.examples-section {
+	margin-top: 2rem;
+	text-align: center;
+}
+
+.examples-section h2 {
+	color: var(--text-color-secondary);
+	font-size: 1.125rem;
+	font-weight: 500;
+	margin-bottom: 1rem;
+}
+
+.example-links {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	margin-bottom: 0.5rem;
+}
+
+.example-link {
+	display: block;
+	padding: 0.875rem 1.25rem;
+	background: var(--surface-color);
+	border: 2px solid var(--border-color);
+	border-radius: 8px;
+	color: var(--text-color);
+	text-decoration: none;
+	transition: all 0.2s;
+	font-weight: 500;
+}
+
+.example-link:hover {
+	border-color: var(--primary-color);
+	color: var(--primary-color);
+	background: rgba(29, 161, 242, 0.05);
+}
+
+.examples-note {
+	color: var(--text-color-secondary);
+	font-size: 0.875rem;
+}

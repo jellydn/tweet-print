@@ -1,6 +1,4 @@
-const URL_PATTERN =
-	/^(https?:\/\/)?(www\.)?(twitter\.com|x\.com)\/.+\/status\/\d+/;
-const SHORT_URL_PATTERN = /^(https?:\/\/)?t\.co\/\w+/;
+import { escapeHtml, formatDate, isValidTwitterUrl } from "./shared.js";
 
 const urlInput = document.getElementById("url-input");
 const generateBtn = document.getElementById("generate-btn");
@@ -14,10 +12,6 @@ const convertAnotherBtn = document.getElementById("convert-another-btn");
 let currentTweetData = null;
 let currentUrl = null;
 
-function isValidTwitterUrl(url) {
-	return URL_PATTERN.test(url) || SHORT_URL_PATTERN.test(url);
-}
-
 function showError(message) {
 	urlInput.classList.add("error");
 	errorMessage.textContent = message;
@@ -27,23 +21,6 @@ function showError(message) {
 function clearError() {
 	urlInput.classList.remove("error");
 	errorMessage.classList.remove("visible");
-}
-
-function formatDate(isoString) {
-	const date = new Date(isoString);
-	return date.toLocaleDateString("en-US", {
-		year: "numeric",
-		month: "long",
-		day: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-	});
-}
-
-function escapeHtml(text) {
-	const div = document.createElement("div");
-	div.textContent = text;
-	return div.innerHTML;
 }
 
 function renderTweet(tweet, showHeader = true) {
@@ -155,13 +132,11 @@ function renderPreview(data) {
 			<div class="thread-header">
 				<span class="thread-count">${tweets.length} tweets</span>
 			</div>
-			${tweets.map((tweet) => renderTweet(tweet)).join("")}
+			${tweets.map((tweet) => renderTweet(tweet, false)).join("")}
 		`;
 	}
 
-	const avatarHtml = isSingle
-		? `<img src="${escapeHtml(tweets[0].authorAvatarUrl)}" alt="${escapeHtml(authorName)}" class="tweet-avatar">`
-		: "";
+	const avatarHtml = `<img src="${escapeHtml(tweets[0].authorAvatarUrl)}" alt="${escapeHtml(authorName)}" class="tweet-avatar">`;
 
 	return `
 		<div class="preview">
@@ -337,4 +312,15 @@ downloadPdfBtn.addEventListener("click", async () => {
 		downloadPdfBtn.disabled = false;
 		downloadPdfBtn.innerHTML = "Download PDF";
 	}
+});
+
+document.querySelectorAll(".example-link").forEach((link) => {
+	link.addEventListener("click", (e) => {
+		e.preventDefault();
+		const url = link.getAttribute("href");
+		hidePreview();
+		urlInput.value = url;
+		generateBtn.disabled = false;
+		validateAndSubmit();
+	});
 });
