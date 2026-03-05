@@ -27,50 +27,46 @@ bun run lint
 ### Testing
 
 ```bash
-# Run all tests
+# Run all unit tests
 bun test
 
 # Run a single test file
-bun test path/to/test-file.test.ts
+bun test src/lib/twitter.test.ts
 
 # Run tests matching a pattern
-bun test --grep "test name"
+bun test --grep "fetchTweet"
+
+# Run E2E tests
+bun test:e2e
+
+# Run E2E tests with UI
+bun test:e2e:ui
+
+# Debug E2E tests
+bun test:e2e:debug
 ```
 
-### Biome (Code Formatting & Linting)
+## Code Style
 
-Biome is configured with:
+### Biome Configuration
 
 - **Indentation:** Tabs
 - **Quotes:** Double quotes
-- **Imports organization:** Auto-organizes on save (runs with `bun run lint`)
+- **Auto-format on save:** Runs with `bun run lint`
 
-## Code Style Guidelines
+### TypeScript (Strict Mode)
 
-### General Principles
-
-- **KISS:** Keep It Simple - no unnecessary complexity
-- **No framework for frontend:** Plain HTML/CSS/JS only
-- **TypeScript strict mode:** Enable all strict type checks
-
-### TypeScript
-
-- Always use explicit types for function parameters and return types
+- Explicit types for function parameters and return types
 - Use `interface` for object shapes, `type` for unions/aliases
 - Avoid `any` - use `unknown` when type is truly unknown
-- Enable strict null checks
 - Key tsconfig settings:
-  - `strict: true` - all strict checks enabled
-  - `noUncheckedIndexedAccess: true` - arrays/tuples include undefined
-  - `noImplicitOverride: true` - must use override keyword
-  - `verbatimModuleSyntax: true` - type imports required
-  - Path alias: `@/` maps to `src/`
+  - `strict: true`, `noUncheckedIndexedAccess: true`
+  - `noImplicitOverride: true`, `verbatimModuleSyntax: true`
+- Path alias: `@/` maps to `src/`
 
 ### Imports
 
-- Use path aliases from `tsconfig.json` (e.g., `@/utils`, `@/lib/twitter`)
-- Order: external libs → internal aliases → relative paths
-- Use `import type` for types only
+Order: external libs → internal aliases → relative paths. Use `import type` for types only.
 
 ```typescript
 import { Hono } from "hono";
@@ -80,17 +76,18 @@ import type { Tweet } from "@/types";
 
 ### Naming Conventions
 
-- **Files:** kebab-case (`twitter-api.ts`, `pdf-generator.ts`)
-- **Components (frontend):** kebab-case (`tweet-preview.html`)
-- **Functions:** camelCase, verb prefix (`getTweetData`, `validateUrl`)
-- **Types/Interfaces:** PascalCase (`TweetData`, `AuthorInfo`)
-- **Constants:** SCREAMING_SNAKE_CASE (`MAX_RETRIES`, `API_BASE_URL`)
-- **Boolean variables:** prefix with `is`, `has`, `should` (`isLoading`, `hasError`)
+| Type                | Convention                 | Example                              |
+| ------------------- | -------------------------- | ------------------------------------ |
+| Files               | kebab-case                 | `twitter-api.ts`, `pdf-generator.ts` |
+| Frontend components | kebab-case                 | `tweet-preview.html`                 |
+| Functions           | camelCase, verb prefix     | `getTweetData`, `validateUrl`        |
+| Types/Interfaces    | PascalCase                 | `TweetData`, `AuthorInfo`            |
+| Constants           | SCREAMING_SNAKE_CASE       | `MAX_RETRIES`, `API_BASE_URL`        |
+| Booleans            | `is`/`has`/`should` prefix | `isLoading`, `hasError`              |
 
 ### Error Handling
 
-- Use custom error classes for domain-specific errors
-- Return user-friendly error messages to API clients
+Use custom error classes for domain-specific errors. Return user-friendly messages.
 
 ```typescript
 class TweetNotFoundError extends Error {
@@ -103,16 +100,39 @@ class TweetNotFoundError extends Error {
 
 ### API Routes (Hono)
 
-- Use Hono's built-in validation with `zod` for request validation
-- Return consistent JSON response structure
-- Use proper HTTP status codes (200, 400, 404, 500)
+- Use Hono's validation with `zod` for request validation
+- Return consistent JSON responses with proper HTTP status codes (200, 400, 404, 500)
+
+### Guard Clauses
+
+Use early returns to avoid nested conditions.
+
+```typescript
+// Avoid
+function processUser(user) {
+  if (user) {
+    if (user.isActive) {
+      if (user.hasPermission) {
+        // main logic
+      }
+    }
+  }
+}
+
+// Prefer
+function processUser(user) {
+  if (!user) return;
+  if (!user.isActive) return;
+  if (!user.hasPermission) return;
+  // main logic
+}
+```
 
 ### Frontend (Static HTML/CSS/JS)
 
-- Keep JavaScript minimal - vanilla JS only
-- Use semantic HTML5 elements
-- CSS: use CSS variables for theming, keep it minimal
-- No external CSS frameworks (KISS)
+- Vanilla JS only, minimal JavaScript
+- Semantic HTML5 elements
+- CSS variables for theming, no external frameworks
 
 ### PDF Generation (Puppeteer)
 
@@ -150,13 +170,14 @@ function isValidTwitterUrl(url: string): boolean {
 
 ## Git Conventions
 
-- Commit message format: `feat: [Story ID] - [Description]`
+- Commit format: `feat: [Story ID] - [Description]`
 - Run typecheck and lint before committing
 - Test locally before pushing
 
 ## Quality Requirements
 
-- All code must pass `bun run typecheck`
-- All code must pass `bun run lint`
-- All tests must pass (`bun test`)
-- Verify frontend changes in browser before committing
+All code must pass:
+
+- `bun run typecheck`
+- `bun run lint`
+- `bun test`

@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="public/logo-readme.svg" alt="TweetPrint Logo" width="200">
+</p>
+
 # TweetPrint
 
 Paste a Twitter/X link → preview → download as a clean PDF.
@@ -24,7 +28,7 @@ bun install
 bun run dev
 ```
 
-Open http://localhost:3000
+Open http://localhost:8008
 
 ## How It Works
 
