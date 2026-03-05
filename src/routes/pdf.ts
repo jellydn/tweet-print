@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import puppeteer from "puppeteer";
+import { z } from "zod";
 import { embedImages, generatePdfHtml } from "../lib/pdf.ts";
 import {
 	extractTweetId,
@@ -7,27 +8,39 @@ import {
 	isValidTwitterUrl,
 } from "../lib/twitter.ts";
 
+const urlSchema = z.object({
+	url: z
+		.string()
+		.url()
+		.refine(
+			(val) => isValidTwitterUrl(val),
+			"URL must be a valid Twitter/X status URL",
+		),
+});
+
 const app = new Hono();
 
 app.post("/", async (c) => {
-	let body: { url: string };
+	let body: unknown;
 	try {
-		body = await c.req.json<{ url: string }>();
+		body = await c.req.json();
 	} catch {
 		return c.json({ error: "Invalid JSON body" }, 400);
 	}
 
-	const { url } = body;
-
-	if (!url || !isValidTwitterUrl(url)) {
+	const parsed = urlSchema.safeParse(body);
+	if (!parsed.success) {
 		return c.json({ error: "Invalid URL format" }, 400);
 	}
+
+	const { url } = parsed.data;
 
 	const tweetId = extractTweetId(url);
 	if (!tweetId) {
 		return c.json({ error: "Invalid tweet URL" }, 400);
 	}
 
+	let browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null;
 	try {
 		const tweets = await fetchTweetThread(tweetId);
 		if (tweets.length === 0) {
@@ -36,43 +49,43 @@ app.post("/", async (c) => {
 
 		const embeddedTweets = await embedImages(tweets);
 		const html = generatePdfHtml(embeddedTweets, url);
-		const browser = await puppeteer.launch({
+		browser = await puppeteer.launch({
 			headless: true,
 			args: ["--no-sandbox", "--disable-setuid-sandbox"],
 		});
 
-		try {
-			const page = await browser.newPage();
-			await page.setContent(html, { waitUntil: "networkidle0" });
+		const page = await browser.newPage();
+		await page.setContent(html, { waitUntil: "networkidle2" });
 
-			const pdf = await page.pdf({
-				format: "A4",
-				printBackground: true,
-				margin: {
-					top: "20px",
-					bottom: "20px",
-					left: "20px",
-					right: "20px",
-				},
-			});
+		const pdf = await page.pdf({
+			format: "A4",
+			printBackground: true,
+			margin: {
+				top: "20px",
+				bottom: "20px",
+				left: "20px",
+				right: "20px",
+			},
+		});
 
-			const firstTweet = tweets[0];
-			if (!firstTweet) {
-				return c.json({ error: "No tweet data provided" }, 400);
-			}
-
-			return new Response(pdf, {
-				headers: {
-					"Content-Type": "application/pdf",
-					"Content-Disposition": `attachment; filename="${firstTweet.authorHandle}-${new Date().toISOString().split("T")[0]}.pdf"`,
-				},
-			});
-		} finally {
-			await browser.close();
+		const firstTweet = tweets[0];
+		if (!firstTweet) {
+			return c.json({ error: "No tweet data provided" }, 400);
 		}
+
+		return new Response(pdf, {
+			headers: {
+				"Content-Type": "application/pdf",
+				"Content-Disposition": `attachment; filename="${firstTweet.authorHandle}-${new Date().toISOString().split("T")[0]}.pdf"`,
+			},
+		});
 	} catch (error) {
 		console.error("PDF generation error:", error);
 		return c.json({ error: "Failed to generate PDF" }, 500);
+	} finally {
+		if (browser) {
+			await browser.close();
+		}
 	}
 });
 

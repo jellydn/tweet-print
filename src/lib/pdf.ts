@@ -1,6 +1,9 @@
 import type { TweetData } from "../types/index.ts";
+import { formatDate } from "./shared/date-format.ts";
+import { escapeHtml } from "./shared/html-escape.ts";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const TARGET_IMAGE_WIDTH = 1200;
 const ALLOWED_MEDIA_HOSTS = new Set([
 	"pbs.twimg.com",
 	"video.twimg.com",
@@ -19,49 +22,138 @@ function isAllowedMediaUrl(raw: string): URL | null {
 	}
 }
 
+function getSmallImageVariant(url: string): string {
+	try {
+		const parsed = new URL(url);
+		const pathname = parsed.pathname;
+		if (pathname.includes("/profile_images/")) {
+			return url.replace(/_normal(\.[a-z]+)$/, "$1");
+		}
+		if (pathname.includes("/media/")) {
+			const ext = parsed.searchParams.get("format") || "jpg";
+			const name = pathname.replace(/\.[a-z]+$/, "");
+			return `${name}?format=${ext}&name=${TARGET_IMAGE_WIDTH}x${TARGET_IMAGE_WIDTH}`;
+		}
+		if (pathname.includes("/card_img/")) {
+			return url;
+		}
+		return url;
+	} catch {
+		return url;
+	}
+}
+
 async function fetchImageAsBase64(url: string): Promise<string> {
 	try {
 		const safeUrl = isAllowedMediaUrl(url);
-		if (!safeUrl) return "";
-		const response = await fetch(safeUrl, {
-			signal: AbortSignal.timeout(5000),
+		if (!safeUrl) {
+			console.warn(`Image URL not allowed: ${url}`);
+			return "";
+		}
+		const variantUrl = getSmallImageVariant(url);
+		const response = await fetch(variantUrl, {
+			signal: AbortSignal.timeout(10000),
 		});
-		if (!response.ok) return "";
+		if (!response.ok) {
+			if (variantUrl !== url) {
+				const fallbackResponse = await fetch(url, {
+					signal: AbortSignal.timeout(10000),
+				});
+				if (!fallbackResponse.ok) {
+					console.warn(
+						`Image fetch failed (${fallbackResponse.status}): ${url}`,
+					);
+					return "";
+				}
+				const contentType = fallbackResponse.headers.get("content-type") || "";
+				if (!contentType.startsWith("image/")) {
+					console.warn(`Image content-type invalid: ${contentType} for ${url}`);
+					return "";
+				}
+				const contentLength = Number(
+					fallbackResponse.headers.get("content-length") ?? "0",
+				);
+				if (contentLength > MAX_IMAGE_BYTES) {
+					console.warn(`Image too large (${contentLength} bytes): ${url}`);
+					return "";
+				}
+				const buffer = await fallbackResponse.arrayBuffer();
+				if (buffer.byteLength > MAX_IMAGE_BYTES) {
+					console.warn(
+						`Image buffer too large (${buffer.byteLength} bytes): ${url}`,
+					);
+					return "";
+				}
+				const base64 = Buffer.from(buffer).toString("base64");
+				return `data:${contentType};base64,${base64}`;
+			}
+			console.warn(`Image fetch failed (${response.status}): ${url}`);
+			return "";
+		}
 		const contentType = response.headers.get("content-type") || "";
-		if (!contentType.startsWith("image/")) return "";
+		if (!contentType.startsWith("image/")) {
+			console.warn(`Image content-type invalid: ${contentType} for ${url}`);
+			return "";
+		}
 		const contentLength = Number(response.headers.get("content-length") ?? "0");
-		if (contentLength > MAX_IMAGE_BYTES) return "";
+		if (contentLength > MAX_IMAGE_BYTES) {
+			console.warn(`Image too large (${contentLength} bytes): ${url}`);
+			return "";
+		}
 		const buffer = await response.arrayBuffer();
-		if (buffer.byteLength > MAX_IMAGE_BYTES) return "";
+		if (buffer.byteLength > MAX_IMAGE_BYTES) {
+			console.warn(
+				`Image buffer too large (${buffer.byteLength} bytes): ${url}`,
+			);
+			return "";
+		}
 		const base64 = Buffer.from(buffer).toString("base64");
 		return `data:${contentType};base64,${base64}`;
-	} catch {
+	} catch (error) {
+		const message = error instanceof Error ? error.message : "Unknown error";
+		console.error(`Image fetch error for ${url}: ${message}`);
 		return "";
 	}
 }
 
 async function embedTweetImages(tweet: TweetData): Promise<TweetData> {
-	const avatarDataUri = await fetchImageAsBase64(tweet.authorAvatarUrl);
-	const imageDataUris = await Promise.all(
+	const avatarDataUriPromise = fetchImageAsBase64(tweet.authorAvatarUrl);
+	const imageDataUrisPromise = Promise.all(
 		tweet.imageUrls.map((url) => fetchImageAsBase64(url)),
 	);
-	const videoThumbDataUri = tweet.videoThumbnailUrl
-		? await fetchImageAsBase64(tweet.videoThumbnailUrl)
-		: null;
-	const linkCard = tweet.linkCard
-		? {
-				...tweet.linkCard,
-				imageUrl: tweet.linkCard.imageUrl
-					? await fetchImageAsBase64(tweet.linkCard.imageUrl)
-					: "",
-			}
-		: null;
-	const parentTweet = tweet.parentTweet
-		? await embedTweetImages(tweet.parentTweet)
-		: null;
-	const quotedTweet = tweet.quotedTweet
-		? await embedTweetImages(tweet.quotedTweet)
-		: null;
+	const videoThumbDataUriPromise = tweet.videoThumbnailUrl
+		? fetchImageAsBase64(tweet.videoThumbnailUrl)
+		: Promise.resolve(null);
+	const linkCardData = tweet.linkCard;
+	const linkCardPromise = linkCardData
+		? fetchImageAsBase64(linkCardData.imageUrl).then((imageUrl) => ({
+				...linkCardData,
+				imageUrl,
+			}))
+		: Promise.resolve(null);
+	const parentTweetPromise = tweet.parentTweet
+		? embedTweetImages(tweet.parentTweet)
+		: Promise.resolve(null);
+	const quotedTweetPromise = tweet.quotedTweet
+		? embedTweetImages(tweet.quotedTweet)
+		: Promise.resolve(null);
+
+	const [
+		avatarDataUri,
+		imageDataUris,
+		videoThumbDataUri,
+		linkCard,
+		parentTweet,
+		quotedTweet,
+	] = await Promise.all([
+		avatarDataUriPromise,
+		imageDataUrisPromise,
+		videoThumbDataUriPromise,
+		linkCardPromise,
+		parentTweetPromise,
+		quotedTweetPromise,
+	]);
+
 	return {
 		...tweet,
 		authorAvatarUrl: avatarDataUri,
@@ -81,25 +173,7 @@ export async function embedImages(tweets: TweetData[]): Promise<TweetData[]> {
 	return result;
 }
 
-export function escapeHtml(text: string): string {
-	return text
-		.replace(/&/g, "&amp;")
-		.replace(/</g, "&lt;")
-		.replace(/>/g, "&gt;")
-		.replace(/"/g, "&quot;")
-		.replace(/'/g, "&#039;");
-}
-
-export function formatDate(isoString: string): string {
-	const date = new Date(isoString);
-	return date.toLocaleDateString("en-US", {
-		year: "numeric",
-		month: "long",
-		day: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-	});
-}
+export { escapeHtml, formatDate };
 
 export function generatePdfHtml(tweets: TweetData[], url: string): string {
 	const firstTweet = tweets[0];
