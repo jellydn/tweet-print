@@ -1,0 +1,97 @@
+## Codebase Patterns
+- Use Bun as the runtime and package manager
+- Hono for the web framework with Bun adapter
+- Serve static files from public/ directory
+- TypeScript with strict mode enabled
+
+## 2026-03-04 07:00 - US-001
+[Session: https://opncd.ai/s/8a9f2c]
+- Initialized Bun project with TypeScript
+- Installed Hono and Puppeteer dependencies
+- Created src/index.ts with Hono server serving static files from public/
+- Created public/index.html with basic HTML page
+- Added dev script: bun run --watch src/index.ts
+- Verified server starts on port 3000
+- Typecheck passes
+
+**Learnings for future iterations:**
+  - Pre-commit hooks fix trailing whitespace and run biome checks
+  - Use readFileSync to serve static HTML files in Hono
+  - tsconfig.json cannot have JSON comments (use biome to format)
+
+## 2026-03-04 07:45 - US-002
+[Session: https://opncd.ai/s/8a9f2c]
+- Implemented URL input form with centered text input and placeholder
+- Added Generate PDF button below input
+- Implemented client-side validation for twitter.com/x.com status URLs
+- Added inline red error message for invalid URLs
+- Button disabled when input is empty
+- Clean minimal CSS design (no framework)
+- Typecheck and lint pass
+
+**Learnings for future iterations:**
+  - The URL regex pattern requires at least one character before /status/
+  - chrome-devtools-mcp not configured, so browser testing was skipped
+  - Pre-commit hooks run biome on all staged files
+
+## 2026-03-04 08:30 - US-003
+[Session: https://opncd.ai/s/8a9f2c]
+- Implemented POST /api/tweet endpoint in src/index.ts
+- Extracts tweet ID from Twitter/X URLs
+- Fetches tweet data from cdn.syndication.twimg.com/tweet-result
+- Returns JSON with: text, authorName, authorHandle, authorAvatarUrl, timestamp, imageUrls
+- Returns 400 for invalid URL format
+- Returns 404 when tweet not found
+- Returns 429 with retry message on rate limit
+- Updated frontend to call the API endpoint with fetch()
+- Typecheck and lint pass
+
+**Learnings for future iterations:**
+  - The syndication API returns 404 for non-existent tweets
+  - Use Record<string, unknown> with type casting for API response parsing
+  - Frontend error handling covers all HTTP status codes (400, 404, 429)
+
+## 2026-03-04 09:15 - US-004
+[Session: https://opncd.ai/s/8a9f2c]
+- Implemented thread fetching via syndication.twitter.com/timeline/conversation/{id}
+- Added fetchTweetThread function that tries thread endpoint and falls back to single tweet
+- Response now returns { tweets: TweetData[] } format with tweets sorted chronologically (oldest first)
+- API returns empty array fallback if both endpoints fail
+- Typecheck and lint pass
+
+**Learnings for future iterations:**
+  - The Twitter syndication thread endpoint may return 404/403 for some tweets
+  - Always fall back to single tweet fetch when thread endpoint fails
+  - Extracted parseTweetData function to reuse parsing logic between single tweet and thread
+  - API response format changed from single tweet to { tweets: [] } - frontend will need updating in US-005
+
+## 2026-03-04 10:00 - US-005/US-006
+[Session: https://opncd.ai/s/8a9f2c]
+- Implemented HTML Preview (US-005): Added preview-container to display tweet/thread
+- Preview shows author info, tweet body with line breaks, embedded images
+- Added "Download PDF" and "Convert Another" buttons
+- Implemented PDF Generation (US-006): Added POST /api/pdf endpoint using Puppeteer
+- PDF includes author section, tweet body, images, footer with source URL and timestamp
+- File downloads as handle-YYYY-MM-DD.pdf
+- Typecheck and lint pass
+
+**Learnings for future iterations:**
+  - Used Puppeteer with headless mode and --no-sandbox flag for Bun compatibility
+  - The generatePdfHtml function reuses HTML structure similar to frontend preview
+  - Frontend passes { tweets, url } to /api/pdf endpoint
+  - ChromeDevTools MCP not configured - browser testing skipped per instructions
+
+## 2026-03-04 10:30 - US-005/US-006/US-007/US-008
+[Session: https://opncd.ai/s/8a9f2c]
+- Verified all remaining stories are implemented in the codebase
+- US-005 (HTML Preview): preview-container, renderTweet/renderPreview, images, timestamps
+- US-006 (PDF Generation): POST /api/pdf with Puppeteer, generatePdfHtml function
+- US-007 (PDF Download): downloadPdfBtn handler, blob handling, file naming
+- US-008 (Loading/Error States): showError/clearError, inline errors, retry capability
+- Updated PRD to mark US-005-US-008 as passes: true
+- Typecheck and lint pass
+
+**Learnings for future iterations:**
+  - All user stories from US-001 to US-008 are now complete
+  - chrome-devtools-mcp was not configured for browser verification
+  - No test script in package.json - verified via typecheck and lint only

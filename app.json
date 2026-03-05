@@ -1,0 +1,22 @@
+{
+	"name": "twt-print",
+	"description": "Convert Twitter/X URLs to clean, printable PDFs",
+	"repository": "https://github.com/jellydn/tweet-print",
+	"stack": "container",
+	"port": 8008,
+	"processes": {
+		"web": "bun run src/index.ts"
+	},
+	"healthchecks": {
+		"web": [
+			{
+				"type": "startup",
+				"name": "web check",
+				"path": "/",
+				"attempts": 3,
+				"wait": 10,
+				"timeout": 5
+			}
+		]
+	}
+}

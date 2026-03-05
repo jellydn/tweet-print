@@ -6,8 +6,6 @@
 - **Purpose:** Convert Twitter/X URLs to clean, printable PDFs
 - **Key APIs:** Twitter syndication API (`syndication.twitter.com`)
 
----
-
 ## Commands
 
 ### Development
@@ -16,114 +14,125 @@
 # Install dependencies
 bun install
 
-# Run development server
+# Run development server (with hot reload)
 bun run dev
 
 # Typecheck (required before commit)
 bun run typecheck
 
-# Lint code
+# Lint and format code
 bun run lint
 ```
 
 ### Testing
 
 ```bash
-# Run all tests
+# Run all unit tests
 bun test
 
 # Run a single test file
-bun test path/to/test-file.test.ts
+bun test src/lib/twitter.test.ts
 
 # Run tests matching a pattern
-bun test --grep "test name"
+bun test --grep "fetchTweet"
+
+# Run E2E tests
+bun test:e2e
+
+# Run E2E tests with UI
+bun test:e2e:ui
+
+# Debug E2E tests
+bun test:e2e:debug
 ```
 
----
+## Code Style
 
-## Code Style Guidelines
+### Biome Configuration
 
-### General Principles
+- **Indentation:** Tabs
+- **Quotes:** Double quotes
+- **Auto-format on save:** Runs with `bun run lint`
 
-- **KISS:** Keep It Simple - no unnecessary complexity
-- **No framework for frontend:** Plain HTML/CSS/JS only
-- **TypeScript strict mode:** Enable all strict type checks
+### TypeScript (Strict Mode)
 
-### TypeScript
-
-- Always use explicit types for function parameters and return types
+- Explicit types for function parameters and return types
 - Use `interface` for object shapes, `type` for unions/aliases
 - Avoid `any` - use `unknown` when type is truly unknown
-- Enable strict null checks
+- Key tsconfig settings:
+  - `strict: true`, `noUncheckedIndexedAccess: true`
+  - `noImplicitOverride: true`, `verbatimModuleSyntax: true`
+- Path alias: `@/` maps to `src/`
 
 ### Imports
 
-- Use path aliases configured in `tsconfig.json` (e.g., `@/utils`)
-- Order imports: external libs → internal aliases → relative paths
-- Prefer named exports over default exports
+Order: external libs → internal aliases → relative paths. Use `import type` for types only.
 
 ```typescript
-// Good
 import { Hono } from "hono";
-import { getTweet, getThread } from "@/lib/twitter";
+import { getTweet } from "@/lib/twitter";
 import type { Tweet } from "@/types";
-
-// Avoid
-import hono from "hono";
-import * as twitter from "@/lib/twitter";
 ```
 
 ### Naming Conventions
 
-- **Files:** kebab-case (`twitter-api.ts`, `pdf-generator.ts`)
-- **Components (frontend):** kebab-case (`tweet-preview.html`)
-- **Functions:** camelCase, verb prefix (`getTweetData`, `validateUrl`)
-- **Types/Interfaces:** PascalCase (`TweetData`, `AuthorInfo`)
-- **Constants:** SCREAMING_SNAKE_CASE (`MAX_RETRIES`, `API_BASE_URL`)
-- **Boolean variables:** prefix with `is`, `has`, `should` (`isLoading`, `hasError`)
+| Type                | Convention                 | Example                              |
+| ------------------- | -------------------------- | ------------------------------------ |
+| Files               | kebab-case                 | `twitter-api.ts`, `pdf-generator.ts` |
+| Frontend components | kebab-case                 | `tweet-preview.html`                 |
+| Functions           | camelCase, verb prefix     | `getTweetData`, `validateUrl`        |
+| Types/Interfaces    | PascalCase                 | `TweetData`, `AuthorInfo`            |
+| Constants           | SCREAMING_SNAKE_CASE       | `MAX_RETRIES`, `API_BASE_URL`        |
+| Booleans            | `is`/`has`/`should` prefix | `isLoading`, `hasError`              |
 
 ### Error Handling
 
-- Use custom error classes for domain-specific errors
-- Always return user-friendly error messages to API clients
-- Log errors with appropriate context for debugging
+Use custom error classes for domain-specific errors. Return user-friendly messages.
 
 ```typescript
-// Good
 class TweetNotFoundError extends Error {
   constructor(tweetId: string) {
     super(`Tweet not found: ${tweetId}`);
     this.name = "TweetNotFoundError";
   }
 }
-
-// API error response
-return c.json({ error: "Tweet not found. It may be private or deleted." }, 404);
 ```
 
 ### API Routes (Hono)
 
-- Use Hono's built-in validation with `zod` for request validation
-- Return consistent JSON response structure
-- Use proper HTTP status codes (200, 400, 404, 500)
+- Use Hono's validation with `zod` for request validation
+- Return consistent JSON responses with proper HTTP status codes (200, 400, 404, 500)
+
+### Guard Clauses
+
+Use early returns to avoid nested conditions.
 
 ```typescript
-// Good
-app.post("/api/tweet", async (c) => {
-  const { url } = c.req.json();
-  if (!url || !isValidTwitterUrl(url)) {
-    return c.json({ error: "Invalid Twitter URL" }, 400);
+// Avoid
+function processUser(user) {
+  if (user) {
+    if (user.isActive) {
+      if (user.hasPermission) {
+        // main logic
+      }
+    }
   }
-  // ...
-});
+}
+
+// Prefer
+function processUser(user) {
+  if (!user) return;
+  if (!user.isActive) return;
+  if (!user.hasPermission) return;
+  // main logic
+}
 ```
 
 ### Frontend (Static HTML/CSS/JS)
 
-- Keep JavaScript minimal - vanilla JS only
-- Use semantic HTML5 elements
-- CSS: use CSS variables for theming, keep it minimal
-- No external CSS frameworks (KISS)
+- Vanilla JS only, minimal JavaScript
+- Semantic HTML5 elements
+- CSS variables for theming, no external frameworks
 
 ### PDF Generation (Puppeteer)
 
@@ -131,35 +140,25 @@ app.post("/api/tweet", async (c) => {
 - Download images locally before rendering
 - Include footer with source URL and timestamp
 
-### Git Conventions
-
-- Commit message format: `feat: [Story ID] - [Description]`
-- Run typecheck and lint before committing
-- Test locally before pushing
-
----
-
 ## Project Structure
 
 ```
 src/
-  index.ts          # Hono server entrypoint
-  routes/           # API route handlers
-  lib/              # Business logic (twitter, pdf)
-  types/            # TypeScript types
+  index.ts    # Hono server entrypoint
+  routes/     # API route handlers
+  lib/        # Business logic (twitter, pdf)
+  types/      # TypeScript types
 public/
-  index.html        # Main frontend page
-  css/              # Stylesheets
-  js/               # Client-side JavaScript
+  index.html  # Main frontend page
+  css/        # Stylesheets
+  js/         # Client-side JavaScript
 ```
-
----
 
 ## Key Patterns
 
-### URL Validation
-
-Accept: `twitter.com/*/status/*` and `x.com/*/status/*`
+- **URL Validation:** `twitter.com/*/status/*` and `x.com/*/status/*`
+- **Thread Fetching:** `syndication.twitter.com/timeline/conversation/{id}`
+- **File Naming:** `{handle}-YYYY-MM-DD.pdf`
 
 ```typescript
 function isValidTwitterUrl(url: string): boolean {
@@ -169,19 +168,16 @@ function isValidTwitterUrl(url: string): boolean {
 }
 ```
 
-### Thread Fetching
+## Git Conventions
 
-Use conversation endpoint: `syndication.twitter.com/timeline/conversation/{id}`
-
-### File Naming for Downloads
-
-Format: `{handle}-YYYY-MM-DD.pdf`
-
----
+- Commit format: `feat: [Story ID] - [Description]`
+- Run typecheck and lint before committing
+- Test locally before pushing
 
 ## Quality Requirements
 
-- All code must pass `bun run typecheck`
-- All code must pass `bun run lint`
-- All tests must pass (`bun test`)
-- Verify frontend changes in browser before committing
+All code must pass:
+
+- `bun run typecheck`
+- `bun run lint`
+- `bun test`

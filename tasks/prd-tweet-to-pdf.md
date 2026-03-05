@@ -20,11 +20,11 @@ A lightweight web tool that converts a public Twitter/X post URL into a clean, s
 
 **Acceptance Criteria:**
 
-- [ ] Bun + Hono server with TypeScript
-- [ ] Static HTML/CSS/JS frontend served from `public/`
-- [ ] Puppeteer installed for PDF generation
-- [ ] Project runs locally with `bun run dev`
-- [ ] Typecheck passes
+- [x] Bun + Hono server with TypeScript
+- [x] Static HTML/CSS/JS frontend served from `public/`
+- [x] Puppeteer installed for PDF generation
+- [x] Project runs locally with `bun run dev`
+- [x] Typecheck passes
 
 ### US-002: URL Input & Validation
 
@@ -32,11 +32,11 @@ A lightweight web tool that converts a public Twitter/X post URL into a clean, s
 
 **Acceptance Criteria:**
 
-- [ ] Landing page with a text input and "Generate PDF" button
-- [ ] Accepts URLs matching `twitter.com/*/status/*` and `x.com/*/status/*`
-- [ ] Shows inline error for invalid URLs
-- [ ] Button is disabled while input is empty or invalid
-- [ ] Typecheck passes
+- [x] Landing page with a text input and "Generate PDF" button
+- [x] Accepts URLs matching `twitter.com/*/status/*` and `x.com/*/status/*`
+- [x] Shows inline error for invalid URLs
+- [x] Button is disabled while input is empty or invalid
+- [x] Typecheck passes
 - [ ] Verify in browser using dev-browser skill
 
 ### US-003: Fetch Tweet Data via Syndication API
@@ -45,11 +45,11 @@ A lightweight web tool that converts a public Twitter/X post URL into a clean, s
 
 **Acceptance Criteria:**
 
-- [ ] `POST /api/tweet` accepts a valid Twitter/X URL
-- [ ] Calls Twitter syndication API (`syndication.twitter.com`) to fetch structured tweet data
-- [ ] Returns JSON with: text, author name, handle, avatar URL, timestamp, image URLs
-- [ ] Returns appropriate error (404, invalid URL, rate limit) with user-friendly message
-- [ ] Typecheck passes
+- [x] `POST /api/tweet` accepts a valid Twitter/X URL
+- [x] Calls Twitter syndication API (`syndication.twitter.com`) to fetch structured tweet data
+- [x] Returns JSON with: text, author name, handle, avatar URL, timestamp, image URLs
+- [x] Returns appropriate error (404, invalid URL, rate limit) with user-friendly message
+- [x] Typecheck passes
 
 ### US-004: Fetch Full Thread
 
@@ -57,11 +57,11 @@ A lightweight web tool that converts a public Twitter/X post URL into a clean, s
 
 **Acceptance Criteria:**
 
-- [ ] Use syndication conversation endpoint (`syndication.twitter.com/timeline/conversation/{id}`) to fetch thread
-- [ ] Thread tweets are ordered chronologically (oldest first)
-- [ ] Each tweet includes: text, author, timestamp, images
-- [ ] Single tweets (not part of a thread) work normally
-- [ ] Typecheck passes
+- [x] Use syndication conversation endpoint (`syndication.twitter.com/timeline/conversation/{id}`) to fetch thread
+- [x] Thread tweets are ordered chronologically (oldest first)
+- [x] Each tweet includes: text, author, timestamp, images
+- [x] Single tweets (not part of a thread) work normally
+- [x] Typecheck passes
 
 ### US-005: HTML Preview
 
@@ -69,12 +69,12 @@ A lightweight web tool that converts a public Twitter/X post URL into a clean, s
 
 **Acceptance Criteria:**
 
-- [ ] After fetching, display an HTML preview of the tweet/thread
-- [ ] Preview shows: author info, tweet body with preserved line breaks, embedded images
-- [ ] Preview has a clean, minimal layout matching the PDF output
-- [ ] "Download PDF" button appears below the preview
-- [ ] "Convert Another" button to reset and start over
-- [ ] Typecheck passes
+- [x] After fetching, display an HTML preview of the tweet/thread
+- [x] Preview shows: author info, tweet body with preserved line breaks, embedded images
+- [x] Preview has a clean, minimal layout matching the PDF output
+- [x] "Download PDF" button appears below the preview
+- [x] "Convert Another" button to reset and start over
+- [x] Typecheck passes
 - [ ] Verify in browser using dev-browser skill
 
 ### US-006: PDF Generation & Download
@@ -83,15 +83,15 @@ A lightweight web tool that converts a public Twitter/X post URL into a clean, s
 
 **Acceptance Criteria:**
 
-- [ ] `POST /api/pdf` accepts tweet data and returns a PDF file stream
-- [ ] PDF uses Puppeteer to render HTML → PDF
-- [ ] PDF layout includes:
+- [x] `POST /api/pdf` accepts tweet data and returns a PDF file stream
+- [x] PDF uses Puppeteer to render HTML → PDF
+- [x] PDF layout includes:
   - Author section (name, handle)
   - Tweet body with preserved line breaks
   - Embedded images
   - Footer with original URL + generation timestamp
-- [ ] File downloads with name format: `handle-YYYY-MM-DD.pdf`
-- [ ] Typecheck passes
+- [x] File downloads with name format: `handle-YYYY-MM-DD.pdf`
+- [x] Typecheck passes
 
 ### US-007: Loading & Error States
 
@@ -99,11 +99,11 @@ A lightweight web tool that converts a public Twitter/X post URL into a clean, s
 
 **Acceptance Criteria:**
 
-- [ ] Loading spinner/skeleton shown while fetching tweet data
-- [ ] Loading state shown while generating PDF
-- [ ] Error messages displayed for: invalid URL, tweet not found, protected tweet, network error
-- [ ] User can retry after an error
-- [ ] Typecheck passes
+- [x] Loading spinner/skeleton shown while fetching tweet data
+- [x] Loading state shown while generating PDF
+- [x] Error messages displayed for: invalid URL, tweet not found, protected tweet, network error
+- [x] User can retry after an error
+- [x] Typecheck passes
 - [ ] Verify in browser using dev-browser skill
 
 ## Functional Requirements
