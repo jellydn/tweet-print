@@ -32,3 +32,12 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # Finder (MacOS) folder config
 .DS_Store
+test-results/.last-run.json
+test-results/app-TweetPrint-E2E-should--4c136-sable-button-based-on-input-chromium/error-context.md
+test-results/app-TweetPrint-E2E-should-allow-converting-another-tweet-chromium/error-context.md
+test-results/app-TweetPrint-E2E-should-handle-Enter-key-to-submit-chromium/error-context.md
+test-results/app-TweetPrint-E2E-should-load-and-preview-a-valid-tweet-chromium/error-context.md
+test-results/app-TweetPrint-E2E-should-show-error-for-invalid-URL-chromium/error-context.md
+test-results/app-TweetPrint-E2E-should-show-error-for-tweet-not-found-chromium/error-context.md
+playwright-report
+test-results
