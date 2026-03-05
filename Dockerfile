@@ -1,7 +1,7 @@
 FROM oven/bun:1 AS base
 WORKDIR /app
 
-# Install Chromium dependencies for Puppeteer
+# Install Chromium for Puppeteer
 RUN apt-get update && apt-get install -y \
 	ca-certificates \
 	fonts-liberation \
@@ -21,8 +21,13 @@ RUN apt-get update && apt-get install -y \
 	libxrandr2 \
 	wget \
 	xdg-utils \
+	chromium \
 	--no-install-recommends \
 	&& rm -rf /var/lib/apt/lists/*
+
+# Set Puppeteer to use system Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 # Install dependencies
 FROM base AS install
