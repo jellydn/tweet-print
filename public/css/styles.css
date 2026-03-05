@@ -260,6 +260,17 @@ input[type="text"].error {
 	font-size: 0.875rem;
 }
 
+.tweet-body .tweet-link {
+	color: var(--primary-color);
+	text-decoration: none;
+	transition: opacity 0.2s;
+}
+
+.tweet-body .tweet-link:hover {
+	opacity: 0.8;
+	text-decoration: underline;
+}
+
 .preview-actions {
 	display: flex;
 	gap: 1rem;

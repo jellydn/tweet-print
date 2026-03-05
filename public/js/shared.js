@@ -78,6 +78,34 @@ function escapeHtml(text) {
 	return div.innerHTML;
 }
 
+function linkifyText(text) {
+	// First escape HTML to prevent XSS
+	let escaped = escapeHtml(text);
+
+	// Convert URLs to clickable links
+	// Match http://, https://, or www. URLs
+	const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/g;
+	escaped = escaped.replace(urlRegex, (match, httpUrl, wwwUrl) => {
+		const url = httpUrl || `https://${wwwUrl}`;
+		const display = match;
+		return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="tweet-link">${display}</a>`;
+	});
+
+	// Convert @mentions to Twitter profile links
+	const mentionRegex = /@(\w+)/g;
+	escaped = escaped.replace(mentionRegex, (match, username) => {
+		return `<a href="https://x.com/${username}" target="_blank" rel="noopener noreferrer" class="tweet-link">${match}</a>`;
+	});
+
+	// Convert #hashtags to Twitter search links
+	const hashtagRegex = /#(\w+)/g;
+	escaped = escaped.replace(hashtagRegex, (match, tag) => {
+		return `<a href="https://x.com/hashtag/${tag}" target="_blank" rel="noopener noreferrer" class="tweet-link">${match}</a>`;
+	});
+
+	return escaped;
+}
+
 function formatDate(isoString) {
 	const date = new Date(isoString);
 	return date.toLocaleDateString("en-US", {
@@ -97,4 +125,5 @@ export {
 	formatDate,
 	TWITTER_HOSTNAMES,
 	parseUrl,
+	linkifyText,
 };

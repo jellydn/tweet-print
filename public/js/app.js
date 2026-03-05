@@ -1,4 +1,9 @@
-import { escapeHtml, formatDate, isValidTwitterUrl } from "./shared.js";
+import {
+	escapeHtml,
+	formatDate,
+	isValidTwitterUrl,
+	linkifyText,
+} from "./shared.js";
 
 const urlInput = document.getElementById("url-input");
 const generateBtn = document.getElementById("generate-btn");
@@ -66,7 +71,7 @@ function renderTweet(tweet, showHeader = true, showTimestamp = true) {
 						<span class="tweet-author-handle">@${escapeHtml(tweet.quotedTweet.authorHandle)}</span>
 					</div>
 				</div>
-				<div class="tweet-body">${escapeHtml(tweet.quotedTweet.text).replace(/\n/g, "<br>")}</div>
+				<div class="tweet-body">${linkifyText(tweet.quotedTweet.text).replace(/\n/g, "<br>")}</div>
 				${tweet.quotedTweet.imageUrls && tweet.quotedTweet.imageUrls.length > 0 ? `<div class="tweet-images">${tweet.quotedTweet.imageUrls.map((img) => `<img src="${escapeHtml(img)}" alt="Tweet image" class="tweet-image" loading="lazy">`).join("")}</div>` : ""}
 				${tweet.quotedTweet.hasVideo && tweet.quotedTweet.videoThumbnailUrl ? `<div class="tweet-video"><img src="${escapeHtml(tweet.quotedTweet.videoThumbnailUrl)}" alt="Video thumbnail" class="tweet-image" loading="lazy"><div class="video-label">▶ Video</div></div>` : ""}
 				<div class="tweet-timestamp">${formatDate(tweet.quotedTweet.timestamp)}</div>
@@ -90,7 +95,7 @@ function renderTweet(tweet, showHeader = true, showTimestamp = true) {
 	return `
 		<div class="tweet">
 			${headerHtml}
-			<div class="tweet-body">${escapeHtml(tweet.text).replace(/\n/g, "<br>")}</div>
+			<div class="tweet-body">${linkifyText(tweet.text).replace(/\n/g, "<br>")}</div>
 			${imagesHtml}
 			${videoHtml}
 			${linkCardHtml}
@@ -110,7 +115,7 @@ function renderParentTweet(parent) {
 					<span class="tweet-author-handle">@${escapeHtml(parent.authorHandle)}</span>
 				</div>
 			</div>
-			<div class="tweet-body">${escapeHtml(parent.text).replace(/\n/g, "<br>")}</div>
+			<div class="tweet-body">${linkifyText(parent.text).replace(/\n/g, "<br>")}</div>
 			<div class="tweet-timestamp">${formatDate(parent.timestamp)}</div>
 		</div>
 	`;
@@ -299,8 +304,13 @@ downloadPdfBtn.addEventListener("click", async () => {
 		const downloadUrl = URL.createObjectURL(blob);
 		const a = document.createElement("a");
 		a.href = downloadUrl;
+		const tweets = currentTweetData.tweets || [currentTweetData];
+		const firstTweet = tweets[0];
+		if (!firstTweet) {
+			throw new Error("No tweet data available");
+		}
 		const fileName =
-			currentTweetData.tweets[0].authorHandle +
+			firstTweet.authorHandle +
 			"-" +
 			new Date().toISOString().split("T")[0] +
 			".pdf";
@@ -309,7 +319,8 @@ downloadPdfBtn.addEventListener("click", async () => {
 		a.click();
 		document.body.removeChild(a);
 		URL.revokeObjectURL(downloadUrl);
-	} catch (_error) {
+	} catch (error) {
+		console.error("PDF download error:", error);
 		showError("Failed to generate PDF. Please try again.");
 		hidePreview();
 	} finally {
