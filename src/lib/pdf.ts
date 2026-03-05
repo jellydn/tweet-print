@@ -231,7 +231,7 @@ export function generatePdfHtml(tweets: TweetData[], url: string): string {
 						</div>
 					</div>
 					<div class="tweet-body">${escapeHtml(tweet.quotedTweet.text).replace(/\n/g, "<br>")}</div>
-					${tweet.quotedTweet.imageUrls.length > 0 ? `<div class="tweet-images">${tweet.quotedTweet.imageUrls.map((img) => `<img src="${escapeHtml(img)}" alt="Tweet image" class="tweet-image" loading="lazy">`).join("")}</div>` : ""}
+					${tweet.quotedTweet.imageUrls && tweet.quotedTweet.imageUrls.length > 0 ? `<div class="tweet-images">${tweet.quotedTweet.imageUrls.map((img) => `<img src="${escapeHtml(img)}" alt="Tweet image" class="tweet-image" loading="lazy">`).join("")}</div>` : ""}
 					${tweet.quotedTweet.hasVideo && tweet.quotedTweet.videoThumbnailUrl ? `<div class="tweet-video"><img src="${escapeHtml(tweet.quotedTweet.videoThumbnailUrl)}" alt="Video thumbnail" class="tweet-image" loading="lazy"><div class="video-label">▶ Video</div></div>` : ""}
 					<div class="tweet-timestamp">${formatDate(tweet.quotedTweet.timestamp)}</div>
 				</div>`
