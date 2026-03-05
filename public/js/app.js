@@ -23,7 +23,7 @@ function clearError() {
 	errorMessage.classList.remove("visible");
 }
 
-function renderTweet(tweet, showHeader = true) {
+function renderTweet(tweet, showHeader = true, showTimestamp = true) {
 	const imagesHtml =
 		tweet.imageUrls && tweet.imageUrls.length > 0
 			? `<div class="tweet-images">
@@ -83,6 +83,10 @@ function renderTweet(tweet, showHeader = true) {
 			</div>`
 		: "";
 
+	const timestampHtml = showTimestamp
+		? `<div class="tweet-timestamp">${formatDate(tweet.timestamp)}</div>`
+		: "";
+
 	return `
 		<div class="tweet">
 			${headerHtml}
@@ -91,7 +95,7 @@ function renderTweet(tweet, showHeader = true) {
 			${videoHtml}
 			${linkCardHtml}
 			${quotedTweetHtml}
-			<div class="tweet-timestamp">${formatDate(tweet.timestamp)}</div>
+			${timestampHtml}
 		</div>
 	`;
 }
@@ -132,7 +136,7 @@ function renderPreview(data) {
 			<div class="thread-header">
 				<span class="thread-count">${tweets.length} tweets</span>
 			</div>
-			${tweets.map((tweet) => renderTweet(tweet, false)).join("")}
+			${tweets.map((tweet, index) => renderTweet(tweet, false, index === tweets.length - 1)).join("")}
 		`;
 	}
 

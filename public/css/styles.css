@@ -372,43 +372,54 @@ input[type="text"].error {
 }
 
 .examples-section {
-	margin-top: 2rem;
+	margin-top: 2.5rem;
 	text-align: center;
 }
 
 .examples-section h2 {
 	color: var(--text-color-secondary);
-	font-size: 1.125rem;
-	font-weight: 500;
+	font-size: 0.875rem;
+	font-weight: 600;
+	letter-spacing: 0.025em;
+	text-transform: uppercase;
 	margin-bottom: 1rem;
+	opacity: 0.8;
 }
 
 .example-links {
 	display: flex;
-	flex-direction: column;
-	gap: 0.5rem;
-	margin-bottom: 0.5rem;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.75rem;
+	margin-bottom: 0.75rem;
 }
 
 .example-link {
-	display: block;
-	padding: 0.875rem 1.25rem;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.625rem 1rem;
 	background: var(--surface-color);
-	border: 2px solid var(--border-color);
-	border-radius: 8px;
+	border: 1px solid var(--border-color);
+	border-radius: 100px;
 	color: var(--text-color);
 	text-decoration: none;
-	transition: all 0.2s;
+	transition: all 0.2s ease;
 	font-weight: 500;
+	font-size: 0.9375rem;
+	white-space: nowrap;
 }
 
 .example-link:hover {
 	border-color: var(--primary-color);
 	color: var(--primary-color);
-	background: rgba(29, 161, 242, 0.05);
+	background: rgba(29, 161, 242, 0.08);
+	transform: translateY(-1px);
+	box-shadow: 0 2px 8px rgba(29, 161, 242, 0.15);
 }
 
 .examples-note {
 	color: var(--text-color-secondary);
-	font-size: 0.875rem;
+	font-size: 0.8125rem;
+	opacity: 0.7;
 }
