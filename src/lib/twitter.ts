@@ -299,26 +299,6 @@ export function parseTweetData(
 	};
 }
 
-function unflattenSelfReplyChain(tweet: TweetData): TweetData[] {
-	const chain: TweetData[] = [];
-	let current: TweetData | null = tweet;
-	const authorHandle = tweet.authorHandle;
-
-	while (current) {
-		chain.push({ ...current, parentTweet: null, isReply: false });
-		if (
-			current.parentTweet &&
-			current.parentTweet.authorHandle === authorHandle
-		) {
-			current = current.parentTweet;
-		} else {
-			break;
-		}
-	}
-
-	chain.reverse();
-	return chain;
-}
 
 function filterSelfReplyThread(
 	rawTweets: RawTweetInfo[],
@@ -523,20 +503,37 @@ export async function fetchTweetThread(tweetId: string): Promise<TweetData[]> {
 		return fetchTweetAsThread(tweetId);
 	}
 
-	if (
-		tweets.length === 1 &&
-		tweets[0]?.parentTweet &&
-		tweets[0].parentTweet.authorHandle === tweets[0].authorHandle
-	) {
-		const chain = unflattenSelfReplyChain(tweets[0]);
-		if (chain.length > 1) {
-			return chain;
-		}
-	}
-
 	tweets.sort(
 		(a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
 	);
+
+	// Extend the chain backwards if the earliest tweet still has a parent from
+	// the same author, meaning the conversation API returned only a partial
+	// thread (e.g. navigating to a later tweet in a long thread).
+	const firstTweet = tweets[0];
+	if (
+		firstTweet?.parentTweet &&
+		firstTweet.parentTweet.authorHandle === firstTweet.authorHandle
+	) {
+		try {
+			const chain = await fetchParentChain(firstTweet);
+			if (chain.length > 1) {
+				const existingIds = new Set(tweets.map((t) => t.id));
+				const olderTweets = chain.filter((t) => !existingIds.has(t.id));
+				if (olderTweets.length > 0) {
+					return [...olderTweets, ...tweets];
+				}
+			}
+		} catch (error) {
+			if (error instanceof Error && error.message === "RATE_LIMITED") {
+				throw error;
+			}
+			const message = error instanceof Error ? error.message : "Unknown error";
+			console.warn(
+				`Failed to extend thread chain backwards (${message}), returning partial chain`,
+			);
+		}
+	}
 
 	return tweets;
 }
