@@ -43,6 +43,15 @@ app.get("/", (c) => {
 	return c.html(indexHtml);
 });
 
+// Serve the SPA for direct tweet URLs like /:handle/status/:id
+app.get("/:handle/status/:id", (c) => {
+	const { id } = c.req.param();
+	if (!/^\d+$/.test(id)) {
+		return c.notFound();
+	}
+	return c.html(indexHtml);
+});
+
 app.use("/*", serveStatic({ root: "./public" }));
 
 export default {
