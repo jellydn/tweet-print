@@ -310,6 +310,44 @@ describe("parseTweetData", () => {
 		expect(result?.authorHandle).toBe("alvinsng");
 	});
 
+	it("should parse article with preview_text and cover_media", () => {
+		const data = {
+			id_str: "2033969062834045089",
+			text: "https://t.co/vgBH7h8JZO",
+			user: {
+				screen_name: "alvinsng",
+				name: "Alvin Sng",
+				profile_image_url_https: "https://example.com/avatar.jpg",
+			},
+			created_at: "2026-03-17T18:09:48.000Z",
+			article: {
+				rest_id: "2028641821728161792",
+				title: "Why we banned React's useEffect",
+				preview_text:
+					"At Factory, we have a simple, yet important frontend rule: no useEffect.",
+				cover_media: {
+					media_info: {
+						original_img_url: "https://pbs.twimg.com/media/HDkC8hvbYAA24kk.jpg",
+					},
+				},
+			},
+		};
+
+		const result = parseTweetData(data);
+
+		expect(result).not.toBeNull();
+		expect(result?.articleTitle).toBe("Why we banned React's useEffect");
+		expect(result?.text).toBe(
+			"At Factory, we have a simple, yet important frontend rule: no useEffect.",
+		);
+		expect(result?.articleCoverImageUrl).toBe(
+			"https://pbs.twimg.com/media/HDkC8hvbYAA24kk.jpg",
+		);
+		expect(result?.articleUrl).toBe(
+			"https://x.com/i/article/2028641821728161792",
+		);
+	});
+
 	it("should return null when no text, text_html, note_tweet, or article content", () => {
 		const data = {
 			id_str: "1234567890",

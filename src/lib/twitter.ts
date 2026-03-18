@@ -94,7 +94,9 @@ function hasArticleContent(data: Record<string, unknown>): boolean {
 		const article = data.article as Record<string, unknown>;
 		if (
 			(typeof article.title === "string" && article.title.length > 0) ||
-			(typeof article.text === "string" && article.text.length > 0)
+			(typeof article.text === "string" && article.text.length > 0) ||
+			(typeof article.preview_text === "string" &&
+				article.preview_text.length > 0)
 		)
 			return true;
 	}
@@ -262,15 +264,31 @@ export function parseTweetData(
 
 	// Handle X Articles (article field)
 	let articleTitle: string | undefined;
+	let articleCoverImageUrl: string | undefined;
+	let articleUrl: string | undefined;
 	const articleData = data.article as Record<string, unknown> | undefined;
 	if (articleData && typeof articleData === "object") {
 		const title = getStringValue(articleData, "title");
 		if (title) {
 			articleTitle = title;
 		}
-		const articleText = getStringValue(articleData, "text");
+		const articleText =
+			getStringValue(articleData, "text") ||
+			getStringValue(articleData, "preview_text");
 		if (articleText) {
 			text = articleText;
+		}
+		const coverImageUrl = getNestedStringValue(articleData, [
+			"cover_media",
+			"media_info",
+			"original_img_url",
+		]);
+		if (coverImageUrl) {
+			articleCoverImageUrl = coverImageUrl;
+		}
+		const restId = getStringValue(articleData, "rest_id");
+		if (restId) {
+			articleUrl = `https://x.com/i/article/${restId}`;
 		}
 	}
 
@@ -338,6 +356,8 @@ export function parseTweetData(
 		parentTweet,
 		quotedTweet,
 		articleTitle,
+		articleCoverImageUrl,
+		articleUrl,
 	};
 }
 
