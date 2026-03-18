@@ -339,3 +339,16 @@ document.querySelectorAll(".example-link").forEach((link) => {
 		validateAndSubmit();
 	});
 });
+
+// Auto-load tweet when visiting a direct URL like /:handle/status/:id
+function getTweetUrlFromPath() {
+	const tweetUrl = `https://x.com${window.location.pathname}${window.location.search}`;
+	return isValidTwitterUrl(tweetUrl) ? tweetUrl : null;
+}
+
+const tweetUrlFromPath = getTweetUrlFromPath();
+if (tweetUrlFromPath) {
+	urlInput.value = tweetUrlFromPath;
+	generateBtn.disabled = false;
+	validateAndSubmit();
+}
