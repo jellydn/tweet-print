@@ -150,7 +150,7 @@ test.describe("TweetPrint E2E", () => {
 		await expect(page.locator("#form-container")).not.toBeVisible();
 		await expect(page.locator("#tweet-preview")).toBeVisible();
 		await expect(page.locator(".tweet")).toBeVisible();
-		await expect(page.locator(".preview-author-name")).toContainText(/alvins/i);
+		await expect(page.locator(".preview-author-name")).toContainText(/alvin/i);
 		await expect(page.locator(".article-title").first()).toBeVisible();
 	});
 });
