@@ -45,7 +45,7 @@ check: typecheck lint
 
 # Run unit tests
 test *args:
-    bun test {{args}}
+    bun test src {{args}}
 
 # Run E2E tests
 test-e2e:

@@ -87,11 +87,16 @@ interface RawTweetInfo {
 function hasArticleContent(data: Record<string, unknown>): boolean {
 	if (data.note_tweet && typeof data.note_tweet === "object") {
 		const noteTweet = data.note_tweet as Record<string, unknown>;
-		if (noteTweet.text) return true;
+		if (typeof noteTweet.text === "string" && noteTweet.text.length > 0)
+			return true;
 	}
 	if (data.article && typeof data.article === "object") {
 		const article = data.article as Record<string, unknown>;
-		if (article.title || article.text) return true;
+		if (
+			(typeof article.title === "string" && article.title.length > 0) ||
+			(typeof article.text === "string" && article.text.length > 0)
+		)
+			return true;
 	}
 	return false;
 }
