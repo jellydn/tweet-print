@@ -103,7 +103,7 @@ test.describe("TweetPrint E2E", () => {
 		});
 	});
 
-	test("should load example tweet 1 (mattpocockuk)", async ({ page }) => {
+	test("should load example tweet 1 (zeddotdev)", async ({ page }) => {
 		test.setTimeout(60_000);
 
 		await page
@@ -116,7 +116,7 @@ test.describe("TweetPrint E2E", () => {
 		await expect(page.locator("#form-container")).not.toBeVisible();
 		await expect(page.locator("#tweet-preview")).toBeVisible();
 		await expect(page.locator(".tweet")).toBeVisible();
-		await expect(page.locator(".preview-author-name")).toContainText(/matt/i);
+		await expect(page.locator(".preview-author-name")).toContainText(/zed/i);
 	});
 
 	test("should load example tweet 2 (trq212)", async ({ page }) => {
@@ -135,11 +135,13 @@ test.describe("TweetPrint E2E", () => {
 		await expect(page.locator(".preview-author-name")).toContainText(/trq|t/i);
 	});
 
-	test("should load example tweet 3 (jellydn)", async ({ page }) => {
+	test("should load example article (alvinsng) and show article title", async ({
+		page,
+	}) => {
 		test.setTimeout(60_000);
 
 		await page
-			.locator(".example-link", { hasText: "💡 Example Tweet 3" })
+			.locator(".example-link", { hasText: "📰 Example Article" })
 			.click();
 
 		await expect(page.locator("#preview-container")).toBeVisible({
@@ -148,8 +150,7 @@ test.describe("TweetPrint E2E", () => {
 		await expect(page.locator("#form-container")).not.toBeVisible();
 		await expect(page.locator("#tweet-preview")).toBeVisible();
 		await expect(page.locator(".tweet")).toBeVisible();
-		await expect(page.locator(".preview-author-name")).toContainText(
-			/jelly|huynh|dung/i,
-		);
+		await expect(page.locator(".preview-author-name")).toContainText(/alvin/i);
+		await expect(page.locator(".article-title").first()).toBeVisible();
 	});
 });

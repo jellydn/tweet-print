@@ -137,6 +137,9 @@ async function embedTweetImages(tweet: TweetData): Promise<TweetData> {
 	const quotedTweetPromise = tweet.quotedTweet
 		? embedTweetImages(tweet.quotedTweet)
 		: Promise.resolve(null);
+	const articleCoverPromise = tweet.articleCoverImageUrl
+		? fetchImageAsBase64(tweet.articleCoverImageUrl)
+		: Promise.resolve(undefined);
 
 	const [
 		avatarDataUri,
@@ -145,6 +148,7 @@ async function embedTweetImages(tweet: TweetData): Promise<TweetData> {
 		linkCard,
 		parentTweet,
 		quotedTweet,
+		articleCoverImageUrl,
 	] = await Promise.all([
 		avatarDataUriPromise,
 		imageDataUrisPromise,
@@ -152,6 +156,7 @@ async function embedTweetImages(tweet: TweetData): Promise<TweetData> {
 		linkCardPromise,
 		parentTweetPromise,
 		quotedTweetPromise,
+		articleCoverPromise,
 	]);
 
 	return {
@@ -162,6 +167,7 @@ async function embedTweetImages(tweet: TweetData): Promise<TweetData> {
 		linkCard,
 		parentTweet,
 		quotedTweet,
+		articleCoverImageUrl: articleCoverImageUrl || undefined,
 	};
 }
 
@@ -247,10 +253,25 @@ export function generatePdfHtml(tweets: TweetData[], url: string): string {
 					</div>
 				</div>`;
 
+			const articleTitleHtml = tweet.articleTitle
+				? `<div class="article-title">${escapeHtml(tweet.articleTitle)}</div>`
+				: "";
+
+			const articleCoverHtml = tweet.articleCoverImageUrl
+				? `<div class="article-cover"><img src="${escapeHtml(tweet.articleCoverImageUrl)}" alt="Article cover" class="article-cover-image"></div>`
+				: "";
+
+			const articleFooterHtml = tweet.articleUrl
+				? `<div class="article-footer"><span class="article-label">Article preview</span> · <a href="${escapeHtml(tweet.articleUrl)}" class="article-link">Read full article on X</a></div>`
+				: "";
+
 			return `
-			<div class="tweet">
-				${headerHtml}
-				<div class="tweet-body">${escapeHtml(tweet.text).replace(/\n/g, "<br>")}</div>
+				<div class="tweet">
+					${headerHtml}
+					${articleCoverHtml}
+					${articleTitleHtml}
+					<div class="tweet-body">${escapeHtml(tweet.text).replace(/\n/g, "<br>")}</div>
+					${articleFooterHtml}
 				${imagesHtml}
 				${videoHtml}
 				${linkCardHtml}
@@ -304,6 +325,13 @@ export function generatePdfHtml(tweets: TweetData[], url: string): string {
     .tweet-author-name { font-weight: 700; }
     .tweet-author-handle { color: #666; font-size: 0.875rem; }
     .tweet-body { margin-bottom: 0.75rem; white-space: pre-wrap; word-wrap: break-word; font-size: 1rem; }
+    .article-title { font-size: 1.375rem; font-weight: 700; margin-bottom: 0.75rem; line-height: 1.3; }
+    .article-cover { margin-bottom: 0.75rem; }
+    .article-cover-image { max-width: 100%; border-radius: 12px; border: 1px solid #e1e8ed; }
+    .article-footer { margin-bottom: 0.75rem; font-size: 0.875rem; color: #666; }
+    .article-label { font-style: italic; }
+    .article-link { color: #1d9bf0; text-decoration: none; }
+    .article-link:hover { text-decoration: underline; }
     .tweet-images { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.75rem; }
     .tweet-image { max-width: 100%; border-radius: 12px; border: 1px solid #e1e8ed; }
     .tweet-video { position: relative; margin-bottom: 0.75rem; }

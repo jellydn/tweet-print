@@ -20,4 +20,7 @@ export interface TweetData {
 	isReply: boolean;
 	parentTweet: TweetData | null;
 	quotedTweet: TweetData | null;
+	articleTitle?: string;
+	articleCoverImageUrl?: string;
+	articleUrl?: string;
 }

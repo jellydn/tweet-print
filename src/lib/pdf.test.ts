@@ -169,4 +169,38 @@ describe("generatePdfHtml", () => {
 		expect(html).toContain("&lt;script&gt;");
 		expect(html).toContain("&lt;img");
 	});
+
+	it("should include article title when present", () => {
+		const tweet = createMockTweet({ articleTitle: "My X Article" });
+		const html = generatePdfHtml(
+			[tweet],
+			"https://twitter.com/user/status/123",
+		);
+
+		expect(html).toContain("article-title");
+		expect(html).toContain("My X Article");
+	});
+
+	it("should escape HTML in article title", () => {
+		const tweet = createMockTweet({
+			articleTitle: '<script>alert("xss")</script>',
+		});
+		const html = generatePdfHtml(
+			[tweet],
+			"https://twitter.com/user/status/123",
+		);
+
+		expect(html).toContain("&lt;script&gt;");
+		expect(html).not.toContain("<script>alert");
+	});
+
+	it("should not include article title element when articleTitle is absent", () => {
+		const tweet = createMockTweet();
+		const html = generatePdfHtml(
+			[tweet],
+			"https://twitter.com/user/status/123",
+		);
+
+		expect(html).not.toContain('class="article-title"');
+	});
 });
