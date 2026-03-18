@@ -227,6 +227,13 @@ input[type="text"].error {
 	overflow-wrap: break-word;
 }
 
+.article-title {
+	font-size: 1.375rem;
+	font-weight: 700;
+	margin-bottom: 0.75rem;
+	line-height: 1.3;
+}
+
 .tweet-images {
 	display: flex;
 	flex-direction: column;

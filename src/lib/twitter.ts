@@ -84,10 +84,22 @@ interface RawTweetInfo {
 	data: Record<string, unknown>;
 }
 
+function hasArticleContent(data: Record<string, unknown>): boolean {
+	if (data.note_tweet && typeof data.note_tweet === "object") {
+		const noteTweet = data.note_tweet as Record<string, unknown>;
+		if (noteTweet.text) return true;
+	}
+	if (data.article && typeof data.article === "object") {
+		const article = data.article as Record<string, unknown>;
+		if (article.title || article.text) return true;
+	}
+	return false;
+}
+
 function extractRawTweetInfo(
 	data: Record<string, unknown>,
 ): RawTweetInfo | null {
-	if (!data.text && !data.text_html) {
+	if (!data.text && !data.text_html && !hasArticleContent(data)) {
 		return null;
 	}
 	const user = data.user as Record<string, string> | undefined;
@@ -214,7 +226,7 @@ export function parseTweetData(
 	if (!data || typeof data !== "object") {
 		return null;
 	}
-	if (!("text" in data) && !("text_html" in data)) {
+	if (!("text" in data) && !("text_html" in data) && !hasArticleContent(data)) {
 		return null;
 	}
 
@@ -233,6 +245,30 @@ export function parseTweetData(
 	const videoInfo = parseVideoInfo(data.video);
 
 	let text = getStringValue(data, "text");
+
+	// Handle Twitter Notes / X Articles (note_tweet field)
+	const noteTweet = data.note_tweet as Record<string, unknown> | undefined;
+	if (noteTweet && typeof noteTweet === "object") {
+		const noteText = getStringValue(noteTweet, "text");
+		if (noteText) {
+			text = noteText;
+		}
+	}
+
+	// Handle X Articles (article field)
+	let articleTitle: string | undefined;
+	const articleData = data.article as Record<string, unknown> | undefined;
+	if (articleData && typeof articleData === "object") {
+		const title = getStringValue(articleData, "title");
+		if (title) {
+			articleTitle = title;
+		}
+		const articleText = getStringValue(articleData, "text");
+		if (articleText) {
+			text = articleText;
+		}
+	}
+
 	if (!text && typeof data.text_html === "string") {
 		text = data.text_html.replace(/<[^>]*>/g, "").trim();
 	}
@@ -296,6 +332,7 @@ export function parseTweetData(
 		isReply,
 		parentTweet,
 		quotedTweet,
+		articleTitle,
 	};
 }
 

@@ -193,4 +193,133 @@ describe("parseTweetData", () => {
 		expect(result?.quotedTweet?.text).toBe("This is the quoted tweet");
 		expect(result?.quotedTweet?.authorHandle).toBe("quoteduser");
 	});
+
+	it("should parse note_tweet field for X Notes / long-form posts", () => {
+		const data = {
+			id_str: "2033969062834045089",
+			text: "Short description...",
+			user: {
+				screen_name: "alvinsng",
+				name: "Alvin Sng",
+				profile_image_url_https: "https://example.com/avatar.jpg",
+			},
+			created_at: "2024-06-15T10:00:00.000Z",
+			note_tweet: {
+				text: "This is the full long-form note content that exceeds 280 characters and contains the complete article text.",
+			},
+		};
+
+		const result = parseTweetData(data);
+
+		expect(result).not.toBeNull();
+		expect(result?.text).toBe(
+			"This is the full long-form note content that exceeds 280 characters and contains the complete article text.",
+		);
+		expect(result?.articleTitle).toBeUndefined();
+	});
+
+	it("should parse article field for X Articles with title", () => {
+		const data = {
+			id_str: "2033969062834045089",
+			text: "",
+			user: {
+				screen_name: "alvinsng",
+				name: "Alvin Sng",
+				profile_image_url_https: "https://example.com/avatar.jpg",
+			},
+			created_at: "2024-06-15T10:00:00.000Z",
+			article: {
+				title: "My X Article Title",
+				text: "This is the full article body content.",
+			},
+		};
+
+		const result = parseTweetData(data);
+
+		expect(result).not.toBeNull();
+		expect(result?.articleTitle).toBe("My X Article Title");
+		expect(result?.text).toBe("This is the full article body content.");
+	});
+
+	it("should prefer article.text over regular text for article content", () => {
+		const data = {
+			id_str: "2033969062834045089",
+			text: "Short tweet text linking to article",
+			user: {
+				screen_name: "alvinsng",
+				name: "Alvin Sng",
+				profile_image_url_https: "https://example.com/avatar.jpg",
+			},
+			created_at: "2024-06-15T10:00:00.000Z",
+			article: {
+				title: "My X Article Title",
+				text: "Full article body content.",
+			},
+		};
+
+		const result = parseTweetData(data);
+
+		expect(result).not.toBeNull();
+		expect(result?.articleTitle).toBe("My X Article Title");
+		expect(result?.text).toBe("Full article body content.");
+	});
+
+	it("should prefer note_tweet.text over regular text for long-form content", () => {
+		const data = {
+			id_str: "2033969062834045089",
+			text: "Short truncated text...",
+			user: {
+				screen_name: "alvinsng",
+				name: "Alvin Sng",
+				profile_image_url_https: "https://example.com/avatar.jpg",
+			},
+			created_at: "2024-06-15T10:00:00.000Z",
+			note_tweet: {
+				text: "This is the complete untruncated text from the note_tweet field.",
+			},
+		};
+
+		const result = parseTweetData(data);
+
+		expect(result).not.toBeNull();
+		expect(result?.text).toBe(
+			"This is the complete untruncated text from the note_tweet field.",
+		);
+	});
+
+	it("should parse article without text field using article.text", () => {
+		const data = {
+			id_str: "2033969062834045089",
+			user: {
+				screen_name: "alvinsng",
+				name: "Alvin Sng",
+				profile_image_url_https: "https://example.com/avatar.jpg",
+			},
+			created_at: "2024-06-15T10:00:00.000Z",
+			article: {
+				title: "Article Title",
+				text: "Article body text here.",
+			},
+		};
+
+		const result = parseTweetData(data);
+
+		expect(result).not.toBeNull();
+		expect(result?.articleTitle).toBe("Article Title");
+		expect(result?.text).toBe("Article body text here.");
+		expect(result?.authorHandle).toBe("alvinsng");
+	});
+
+	it("should return null when no text, text_html, note_tweet, or article content", () => {
+		const data = {
+			id_str: "1234567890",
+			user: {
+				screen_name: "testuser",
+				name: "Test User",
+			},
+			created_at: "2024-01-01T12:00:00.000Z",
+		};
+
+		expect(parseTweetData(data)).toBeNull();
+	});
 });

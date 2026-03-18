@@ -247,9 +247,14 @@ export function generatePdfHtml(tweets: TweetData[], url: string): string {
 					</div>
 				</div>`;
 
+			const articleTitleHtml = tweet.articleTitle
+				? `<div class="article-title">${escapeHtml(tweet.articleTitle)}</div>`
+				: "";
+
 			return `
 			<div class="tweet">
 				${headerHtml}
+				${articleTitleHtml}
 				<div class="tweet-body">${escapeHtml(tweet.text).replace(/\n/g, "<br>")}</div>
 				${imagesHtml}
 				${videoHtml}
@@ -304,6 +309,7 @@ export function generatePdfHtml(tweets: TweetData[], url: string): string {
     .tweet-author-name { font-weight: 700; }
     .tweet-author-handle { color: #666; font-size: 0.875rem; }
     .tweet-body { margin-bottom: 0.75rem; white-space: pre-wrap; word-wrap: break-word; font-size: 1rem; }
+    .article-title { font-size: 1.375rem; font-weight: 700; margin-bottom: 0.75rem; line-height: 1.3; }
     .tweet-images { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.75rem; }
     .tweet-image { max-width: 100%; border-radius: 12px; border: 1px solid #e1e8ed; }
     .tweet-video { position: relative; margin-bottom: 0.75rem; }

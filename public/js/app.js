@@ -92,9 +92,14 @@ function renderTweet(tweet, showHeader = true, showTimestamp = true) {
 		? `<div class="tweet-timestamp">${formatDate(tweet.timestamp)}</div>`
 		: "";
 
+	const articleTitleHtml = tweet.articleTitle
+		? `<div class="article-title">${escapeHtml(tweet.articleTitle)}</div>`
+		: "";
+
 	return `
 		<div class="tweet">
 			${headerHtml}
+			${articleTitleHtml}
 			<div class="tweet-body">${linkifyText(tweet.text).replace(/\n/g, "<br>")}</div>
 			${imagesHtml}
 			${videoHtml}
