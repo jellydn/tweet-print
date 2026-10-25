@@ -153,6 +153,12 @@ describe("generatePdfHtml", () => {
 		expect(html).toContain("First tweet");
 		expect(html).toContain("Second tweet");
 		expect(html).toContain("Third tweet");
+		expect(html.indexOf("First tweet")).toBeLessThan(
+			html.indexOf("Second tweet"),
+		);
+		expect(html.indexOf("Second tweet")).toBeLessThan(
+			html.indexOf("Third tweet"),
+		);
 	});
 
 	it("should escape HTML in tweet content", () => {

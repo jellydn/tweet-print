@@ -1,5 +1,137 @@
-import { describe, expect, it } from "bun:test";
-import { parseTweetData } from "./twitter.ts";
+import { describe, expect, it, spyOn } from "bun:test";
+import { fetchTweetThread, parseTweetData } from "./twitter.ts";
+
+describe("fetchTweetThread ordering", () => {
+	const oldest = {
+		id_str: "100",
+		text: "First post",
+		created_at: "2026-03-06T17:30:00.000Z",
+		user: { screen_name: "author", name: "Author" },
+	};
+	const middle = {
+		...oldest,
+		id_str: "200",
+		text: "Second post",
+		created_at: "2026-03-06T17:32:00.000Z",
+		in_reply_to_status_id_str: "100",
+	};
+	const newest = {
+		...oldest,
+		id_str: "300",
+		text: "Last post",
+		created_at: "2026-03-06T17:35:41.000Z",
+		in_reply_to_status_id_str: "200",
+	};
+
+	it("returns shuffled conversation tweets oldest first, excluding other authors", async () => {
+		const fetchMock = spyOn(globalThis, "fetch").mockResolvedValue(
+			Response.json({
+				timeline: {
+					items: [
+						newest,
+						{ ...middle, id_str: "250", user: { screen_name: "other" } },
+						oldest,
+						middle,
+					].map((tweet) => ({ tweet })),
+				},
+			}),
+		);
+		try {
+			const tweets = await fetchTweetThread("200");
+			expect(tweets.map((tweet) => tweet.id)).toEqual(["100", "200", "300"]);
+		} finally {
+			fetchMock.mockRestore();
+		}
+	});
+
+	it("returns the full earlier self-reply thread beyond five parents, oldest first", async () => {
+		const posts = Array.from({ length: 9 }, (_, index) => ({
+			...oldest,
+			id_str: String(index + 1),
+			text: `Post ${index + 1}`,
+			created_at: `2026-03-06T17:0${index}:00.000Z`,
+		}));
+		const fetchMock = spyOn(globalThis, "fetch").mockImplementation(
+			Object.assign(
+				async (input: string | URL | Request) => {
+					const url = new URL(String(input));
+					if (url.hostname === "syndication.twitter.com")
+						return new Response("");
+					const index = Number(url.searchParams.get("id")) - 1;
+					return Response.json({ ...posts[index], parent: posts[index - 1] });
+				},
+				{ preconnect: globalThis.fetch.preconnect },
+			),
+		);
+		try {
+			const tweets = await fetchTweetThread("9");
+			expect(tweets.map((tweet) => tweet.id)).toEqual([
+				"1",
+				"2",
+				"3",
+				"4",
+				"5",
+				"6",
+				"7",
+				"8",
+				"9",
+			]);
+			expect(tweets.every((tweet) => tweet.parentTweet === null)).toBe(true);
+		} finally {
+			fetchMock.mockRestore();
+		}
+	});
+
+	it.each([
+		{
+			name: "a repeated parent",
+			parent: { ...oldest, parent: middle },
+			expected: ["100", "200", "300"],
+		},
+		{
+			name: "an unavailable parent",
+			parent: null,
+			expected: ["200", "300"],
+		},
+		{
+			name: "a parent fetched with a different author",
+			parent: { ...oldest, user: { screen_name: "other", name: "Other" } },
+			expected: ["200", "300"],
+		},
+	])("stops at $name without duplicating or mixing posts", async ({
+		parent,
+		expected,
+	}) => {
+		let remainingRequests = 10;
+		const fetchMock = spyOn(globalThis, "fetch").mockImplementation(
+			Object.assign(
+				async (input: string | URL | Request) => {
+					if (--remainingRequests < 0)
+						throw new Error("Parent loop did not stop");
+					const url = new URL(String(input));
+					if (url.hostname === "syndication.twitter.com")
+						return new Response("");
+					const posts: Record<string, unknown> = {
+						"300": { ...newest, parent: middle },
+						"200": { ...middle, parent: oldest },
+						"100": parent,
+					};
+					const post = posts[url.searchParams.get("id") ?? ""];
+					return post
+						? Response.json(post)
+						: new Response(null, { status: 404 });
+				},
+				{ preconnect: globalThis.fetch.preconnect },
+			),
+		);
+		try {
+			const tweets = await fetchTweetThread("300");
+			expect(tweets.map((tweet) => tweet.id)).toEqual([...expected]);
+		} finally {
+			fetchMock.mockRestore();
+		}
+	});
+});
 
 describe("parseTweetData", () => {
 	it("should parse a basic tweet", () => {

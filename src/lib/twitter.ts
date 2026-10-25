@@ -440,29 +440,25 @@ function filterSelfReplyThread(
 	return threadTweets.length > 1 ? threadTweets : rawTweets;
 }
 
-async function fetchParentChain(
-	tweet: TweetData,
-	maxDepth = 5,
-): Promise<TweetData[]> {
+async function fetchParentChain(tweet: TweetData): Promise<TweetData[]> {
 	const chain: TweetData[] = [{ ...tweet, parentTweet: null, isReply: false }];
 	let current: TweetData | null = tweet;
 	const authorHandle = tweet.authorHandle;
-	let depth = 0;
+	const visited = new Set([tweet.id]);
 
 	while (
 		current?.parentTweet &&
-		current.parentTweet.authorHandle === authorHandle &&
-		depth < maxDepth
+		current.parentTweet.authorHandle === authorHandle
 	) {
 		const parentId = current.parentTweet.id;
-		if (!parentId) break;
+		if (!parentId || visited.has(parentId)) break;
+		visited.add(parentId);
 
 		const parentTweet = await fetchTweetData(parentId);
-		if (!parentTweet) break;
+		if (!parentTweet || parentTweet.authorHandle !== authorHandle) break;
 
 		chain.push({ ...parentTweet, parentTweet: null, isReply: false });
 		current = parentTweet;
-		depth++;
 	}
 
 	chain.reverse();

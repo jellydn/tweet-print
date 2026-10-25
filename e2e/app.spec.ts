@@ -76,6 +76,39 @@ test.describe("Direct detail URLs", () => {
 		await expect(page.locator("#url-input")).toHaveValue(tweetUrl);
 	});
 
+	test("displays thread posts in the API's oldest-to-newest order", async ({
+		page,
+	}) => {
+		await page.route("**/api/tweet", (route) =>
+			route.fulfill({
+				json: {
+					tweets: [
+						{
+							...tweet,
+							id: "100",
+							text: "First post",
+							timestamp: "2026-03-06T17:30:00Z",
+						},
+						{
+							...tweet,
+							id: "200",
+							text: "Second post",
+							timestamp: "2026-03-06T17:32:00Z",
+						},
+						{ ...tweet, id: "300", text: "Last post" },
+					],
+				},
+			}),
+		);
+		await page.goto(detailPath);
+		await expect(page.locator(".thread-count")).toHaveText("3 tweets");
+		await expect(page.locator(".tweet > .tweet-body")).toHaveText([
+			"First post",
+			"Second post",
+			"Last post",
+		]);
+	});
+
 	test("does not restore a stale preview after Back during loading", async ({
 		page,
 	}) => {
