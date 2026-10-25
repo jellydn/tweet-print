@@ -126,6 +126,12 @@ git push dokku main
 3. **Preview** — See an HTML preview of the tweet/thread with clickable links
 4. **Download** — Click **Download PDF** to get a clean, printable PDF
 
+The address bar now contains a direct link to the preview. Copy it to share or
+bookmark the detail page. Reloading the link fetches the tweet again. You can also
+open `/?url=https%3A%2F%2Fx.com%2Fshadcn%2Fstatus%2F2029974211972743620`
+on your TweetPrint instance to load a preview directly. Encode the full tweet URL,
+including any query parameters, as the `url` parameter.
+
 ## 📦 Project Structure
 
 ```

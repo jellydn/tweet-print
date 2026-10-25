@@ -16,6 +16,7 @@ const convertAnotherBtn = document.getElementById("convert-another-btn");
 
 let currentTweetData = null;
 let currentUrl = null;
+let tweetRequest = null;
 
 function showError(message) {
 	urlInput.classList.add("error");
@@ -185,25 +186,29 @@ function showPreview(data) {
 }
 
 function hidePreview() {
+	tweetRequest?.abort();
 	previewContainer.style.display = "none";
 	formContainer.style.display = "block";
 	currentTweetData = null;
 	currentUrl = null;
 	urlInput.value = "";
 	generateBtn.disabled = true;
+	generateBtn.innerHTML = "Generate PDF";
 }
 
-async function fetchTweetData(url) {
+async function fetchTweetData(url, signal) {
 	let response;
 	try {
 		response = await fetch("/api/tweet", {
 			method: "POST",
+			signal,
 			headers: {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({ url }),
 		});
 	} catch {
+		if (signal.aborted) return null;
 		showError("Network error. Please check your connection and try again.");
 		return null;
 	}
@@ -216,6 +221,7 @@ async function fetchTweetData(url) {
 		} catch {
 			// Response body is not JSON
 		}
+		if (signal.aborted) return null;
 		if (response.status === 400) {
 			showError(error);
 		} else if (response.status === 404) {
@@ -228,10 +234,16 @@ async function fetchTweetData(url) {
 		return null;
 	}
 
-	return response.json();
+	try {
+		return await response.json();
+	} catch {
+		if (!signal.aborted)
+			showError("Failed to read tweet data. Please try again.");
+		return null;
+	}
 }
 
-async function validateAndSubmit() {
+async function validateAndSubmit(updateHistory = true) {
 	const url = urlInput.value.trim();
 
 	if (!url) {
@@ -250,7 +262,11 @@ async function validateAndSubmit() {
 	generateBtn.disabled = true;
 	generateBtn.innerHTML = '<span class="spinner"></span>Loading...';
 
-	const tweetData = await fetchTweetData(url);
+	tweetRequest?.abort();
+	const request = new AbortController();
+	tweetRequest = request;
+	const tweetData = await fetchTweetData(url, request.signal);
+	if (request.signal.aborted) return;
 
 	generateBtn.disabled = false;
 	generateBtn.innerHTML = "Generate PDF";
@@ -258,8 +274,26 @@ async function validateAndSubmit() {
 	if (tweetData) {
 		currentUrl = url;
 		showPreview(tweetData);
+		if (updateHistory) {
+			const detailUrl = new URL(window.location.href);
+			detailUrl.searchParams.set("url", url);
+			if (detailUrl.href !== window.location.href) {
+				window.history.pushState(null, "", detailUrl);
+			}
+		}
 	}
 }
+
+function loadFromLocation() {
+	hidePreview();
+	clearError();
+	const url = new URL(window.location.href).searchParams.get("url");
+	if (url === null) return;
+	urlInput.value = url;
+	validateAndSubmit(false);
+}
+
+window.addEventListener("popstate", loadFromLocation);
 
 urlInput.addEventListener("input", () => {
 	if (urlInput.value.trim() === "") {
@@ -277,10 +311,14 @@ urlInput.addEventListener("keydown", (e) => {
 	}
 });
 
-generateBtn.addEventListener("click", validateAndSubmit);
+generateBtn.addEventListener("click", () => validateAndSubmit());
 
 convertAnotherBtn.addEventListener("click", () => {
 	hidePreview();
+	clearError();
+	const homeUrl = new URL(window.location.href);
+	homeUrl.searchParams.delete("url");
+	window.history.pushState(null, "", homeUrl);
 });
 
 downloadPdfBtn.addEventListener("click", async () => {
@@ -354,3 +392,5 @@ document.querySelectorAll(".example-link").forEach((link) => {
 		validateAndSubmit();
 	});
 });
+
+loadFromLocation();
